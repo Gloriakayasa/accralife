@@ -16,6 +16,8 @@
       "package.json",
       "package-lock.json",
       "debug_browser.mjs",
+      "test_emulator.mjs",
+      "render_icon.mjs",
       "*.py"
     ],
     "headers": [
