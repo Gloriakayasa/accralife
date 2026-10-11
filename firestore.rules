@@ -1,0 +1,190 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// This security rules file assumes the following data structures:
+//
+// Collection: users
+// Document ID: {userId} (matches request.auth.uid)
+// Fields:
+//   - username: string (required, 3-30 chars, alphanumeric / valid chars) - Player username
+//   - email: string (required, valid email format, max 254 chars) - Player email address (PII)
+//   - age: number (required, integer/number >= 13 and <= 120) - Player age
+//   - createdAt: timestamp (required, <= request.time, immutable) - Account registration timestamp
+//   - updatedAt: timestamp (optional, <= request.time) - Profile update timestamp
+//   - uid: string (optional, matches request.auth.uid, immutable) - User UID
+//
+// Collection: usernames
+// Document ID: {username} (required, 3-30 chars, alphanumeric / valid chars)
+// Fields:
+//   - uid: string (required, matches request.auth.uid) - UID of player claiming this username
+//   - username: string (optional, matches document ID) - Claimed username
+//   - createdAt: timestamp (optional, <= request.time) - Reservation timestamp
+//
+// Collection: saves
+// Document ID: {userId} (matches request.auth.uid)
+// Fields:
+//   - cash: number (required, >= 0 and <= 1,000,000,000,000) - Player in-game cash
+//   - energy: number (required, >= 0 and <= 100) - Player stamina / energy meter
+//   - district: string (required, 1-50 chars) - Current city district (e.g. Osu, Jamestown, Airport)
+//   - inventory: list (required, max 100 items) - Collected game inventory items
+//   - updatedAt: timestamp (required, <= request.time) - Save game timestamp
+//   - createdAt: timestamp (optional, <= request.time, immutable) - Save creation timestamp
+//   - uid: string (optional, matches request.auth.uid, immutable) - Player UID
+//   - userId: string (optional, matches request.auth.uid, immutable) - Player UID
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if user owns the resource based on path parameter
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Validate that required fields exist in request payload
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that only permitted fields exist in request payload
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate email format and realistic length bounds
+    function isValidEmail(email) {
+      return email is string &&
+             email.size() <= 254 &&
+             email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Validate username string length and character set
+    function isValidUsernameString(name) {
+      return name is string &&
+             name.size() >= 3 &&
+             name.size() <= 30 &&
+             name.matches("^[a-zA-Z0-9_.-]+$");
+    }
+
+    // Validate that immutable fields are not modified during an update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators (Validator Function Pattern)
+    // ===============================================================
+
+    // Domain validator for users/{userId}
+    function isValidUser(data) {
+      return hasRequiredFields(['username', 'email', 'age', 'createdAt']) &&
+             hasOnlyAllowedFields(['username', 'email', 'age', 'createdAt', 'updatedAt', 'uid']) &&
+             isValidUsernameString(data.username) &&
+             isValidEmail(data.email) &&
+             data.age is number &&
+             data.age >= 13 &&
+             data.age <= 120 &&
+             data.createdAt is timestamp &&
+             data.createdAt <= request.time &&
+             (!('updatedAt' in data) || (data.updatedAt is timestamp && data.updatedAt <= request.time)) &&
+             (!('uid' in data) || (data.uid is string && data.uid == request.auth.uid));
+    }
+
+    // Domain validator for usernames/{username}
+    function isValidUsernameDoc(data, username) {
+      return hasRequiredFields(['uid']) &&
+             hasOnlyAllowedFields(['uid', 'username', 'createdAt']) &&
+             isValidUsernameString(username) &&
+             data.uid is string &&
+             data.uid == request.auth.uid &&
+             (!('username' in data) || (data.username is string && data.username == username)) &&
+             (!('createdAt' in data) || (data.createdAt is timestamp && data.createdAt <= request.time));
+    }
+
+    // Domain validator for saves/{userId}
+    function isValidSave(data) {
+      return hasRequiredFields(['cash', 'energy', 'district', 'inventory', 'updatedAt']) &&
+             hasOnlyAllowedFields(['cash', 'energy', 'district', 'inventory', 'updatedAt', 'createdAt', 'uid', 'userId']) &&
+             data.cash is number &&
+             data.cash >= 0 &&
+             data.cash <= 1000000000000 &&
+             data.energy is number &&
+             data.energy >= 0 &&
+             data.energy <= 100 &&
+             data.district is string &&
+             data.district.size() >= 1 &&
+             data.district.size() <= 50 &&
+             data.inventory is list &&
+             data.inventory.size() <= 100 &&
+             data.updatedAt is timestamp &&
+             data.updatedAt <= request.time &&
+             (!('createdAt' in data) || (data.createdAt is timestamp && data.createdAt <= request.time)) &&
+             (!('uid' in data) || (data.uid is string && data.uid == request.auth.uid)) &&
+             (!('userId' in data) || (data.userId is string && data.userId == request.auth.uid));
+    }
+
+    // ===============================================================
+    // Root Default Deny
+    // ===============================================================
+
+    // Deny access to any unspecified path by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // Match Rules
+    // ===============================================================
+
+    // 1. users/{userId}
+    // Only the authenticated owner can read or write their user document.
+    // Strictly protects user PII (email, age).
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+                       isValidUser(request.resource.data);
+      allow update: if isOwner(userId) &&
+                       isValidUser(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['createdAt', 'uid']);
+      allow delete: if isOwner(userId);
+    }
+
+    // 2. usernames/{username}
+    // Mapping collection to ensure unique usernames across all players.
+    // Any authenticated user can read to check availability.
+    // Creation allowed only if document does not already exist and belongs to authenticated user.
+    // Updates and deletions are forbidden.
+    match /usernames/{username} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       !exists(/databases/$(database)/documents/usernames/$(username)) &&
+                       isValidUsernameDoc(request.resource.data, username);
+      allow update, delete: if false;
+    }
+
+    // 3. saves/{userId}
+    // Game save data accessible and mutable only by the authenticated owner.
+    match /saves/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) &&
+                       isValidSave(request.resource.data);
+      allow update: if isOwner(userId) &&
+                       isValidSave(request.resource.data) &&
+                       areImmutableFieldsUnchanged(['createdAt', 'uid', 'userId']);
+      allow delete: if isOwner(userId);
+    }
+  }
+}

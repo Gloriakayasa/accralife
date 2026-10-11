@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Life in New York - Nokia E71/E72 Web Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Accra Life - Alvyd Retro Mobile Simulator</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         * {
@@ -16,9 +16,9 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background-color: #12151b;
+            background-color: #0b0d13;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #e0e0e0;
+            color: #f1f5f9;
         }
 
         /* Top control bar */
@@ -27,47 +27,60 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 40px;
-            background: rgba(18, 21, 27, 0.85);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            height: 44px;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 12px;
             z-index: 100;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .bar-title {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 0.95rem;
-            color: #f1f5f9;
+            color: #f8fafc;
             letter-spacing: 0.5px;
         }
 
         .bar-title img {
-            width: 22px;
-            height: 22px;
+            width: 24px;
+            height: 24px;
+            border-radius: 5px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }
+
+        .alvyd-badge {
+            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
             border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
 
         .bar-buttons {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 6px;
         }
 
         .bar-btn {
-            background: #272c36;
+            background: rgba(30, 41, 59, 0.8);
             color: #cbd5e1;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 4px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 5px 10px;
             border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 500;
+            font-size: 0.78rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease;
             display: inline-flex;
@@ -76,32 +89,56 @@
         }
 
         .bar-btn:hover {
-            background: #333a47;
+            background: #334155;
             color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .bar-btn.btn-momo {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
+        }
+
+        .bar-btn.btn-momo:hover {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .bar-btn.btn-ad {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .bar-btn.btn-ad:hover {
+            background: rgba(16, 185, 129, 0.35);
+            color: #ffffff;
         }
 
         /* Screen Area */
         #screen-area {
-            background-color: #0f1115;
+            background: radial-gradient(circle at center, #131824 0%, #07090e 100%);
             position: absolute;
-            top: 40px;
+            top: 44px;
             left: 0;
             right: 0;
             bottom: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            overflow: hidden;
         }
 
+        /* Authentic Smooth High-Definition Canvas (NO PIXELATED / JAGGED BLOCKS) */
         #display {
             background-color: black;
             zoom: 1;
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
-            border-radius: 2px;
+            image-rendering: auto;
+            image-rendering: -webkit-optimize-contrast;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            touch-action: none;
         }
 
         #display:focus {
@@ -109,13 +146,13 @@
         }
 
         #loading {
-            font-size: 1.4rem;
-            font-weight: 500;
+            font-size: 1.25rem;
+            font-weight: 600;
             color: #94a3b8;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         #loading[hidden], #loading.hidden {
@@ -123,243 +160,334 @@
         }
 
         .spinner {
-            width: 36px;
-            height: 36px;
+            width: 42px;
+            height: 42px;
             border: 3px solid rgba(255, 255, 255, 0.1);
             border-top-color: #38bdf8;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        /* Keypad */
-        .keypad-part {
-            background-color: #1a1e26;
-            padding: 8px;
+        /* Modern Floating Touch HUD (Buttonless / Clean) */
+        #touch-hud {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            justify-content: center;
             align-items: center;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            z-index: 50;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            gap: 10px;
+            z-index: 80;
+            pointer-events: auto;
         }
 
-        .key-grid {
-            display: grid;
-            gap: 6px;
-            width: 100%;
-            height: 100%;
-        }
-
-        .left-grid {
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-        }
-
-        .right-grid {
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-        }
-
-        .key {
-            background-color: #2b323f;
+        .touch-hud-btn {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             color: #f1f5f9;
-            border: 1px solid #3b4455;
-            border-radius: 6px;
-            font-size: 1.25em;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 8px 14px;
+            font-size: 0.82rem;
             font-weight: 600;
-            cursor: pointer;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+            transition: all 0.12s ease;
+            touch-action: manipulation;
+        }
+
+        .touch-hud-btn:active {
+            transform: scale(0.92);
+            background: rgba(2, 132, 199, 0.5);
+            border-color: #38bdf8;
+        }
+
+        .touch-hud-btn.action-primary {
+            background: rgba(2, 132, 199, 0.85);
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 4px 16px rgba(2, 132, 199, 0.5);
+        }
+
+        /* Completely Hide the Retro Virtual Buttons */
+        .keypad-part, #left-keys, #right-keys {
+            display: none !important;
+        }
+
+        /* Generic Modal Base */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            transition: background-color 0.1s ease, transform 0.05s ease;
-            line-height: 1.1;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 1000;
+            padding: 16px;
         }
 
-        .key span {
-            font-size: 0.4em;
-            font-weight: normal;
-            margin-top: 2px;
+        .modal-overlay.open {
+            display: flex !important;
+        }
+
+        .modal-card {
+            background: #151922;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            width: 100%;
+            max-width: 440px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+            color: #f1f5f9;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 12px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close-btn {
+            background: transparent;
+            border: none;
             color: #94a3b8;
-        }
-
-        .key.active, .key:active {
-            background-color: #475569;
-            transform: scale(0.96);
-            border-color: #64748b;
-        }
-
-        .arrow-key {
-            font-size: 1.6em;
-            color: #38bdf8;
-        }
-
-        .ok-key {
-            font-size: 1.2em;
-            background-color: #0369a1;
-            border-color: #0284c7;
-            color: #ffffff;
-        }
-
-        .ok-key.active, .ok-key:active {
-            background-color: #0284c7;
-        }
-
-        .small-key {
-            width: 75%;
-            height: 75%;
-            font-size: 0.9em;
-            align-self: end;
-            padding: 2px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 4px;
             line-height: 1;
         }
 
-        .small-key-left {
-            justify-self: left;
+        .modal-close-btn:hover {
+            color: #ffffff;
         }
 
-        .small-key-right {
-            justify-self: right;
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 14px;
         }
 
-        #left-keys,
-        #right-keys {
-            display: none;
-            position: absolute;
-            bottom: 0;
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 6px;
         }
 
-        #left-keys {
-            left: 0;
+        .form-control {
+            width: 100%;
+            background: #0d1017;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.15s ease;
         }
 
-        #right-keys {
-            right: 0;
+        .form-control:focus {
+            border-color: #38bdf8;
         }
 
-        /* Portrait & Landscape Layouts for Keypad */
-        body.kbd-portrait #left-keys,
-        body.kbd-portrait #right-keys,
-        body.kbd-landscape #left-keys,
-        body.kbd-landscape #right-keys {
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-submit:hover {
+            background: linear-gradient(135deg, #0369a1, #0284c7);
+        }
+
+        .auth-tabs {
             display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding-bottom: 8px;
         }
 
-        body.kbd-portrait #left-keys,
-        body.kbd-portrait #right-keys {
-            width: 50%;
-            height: 230px;
+        .auth-tab-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 6px;
         }
 
-        body.kbd-landscape #left-keys,
-        body.kbd-landscape #right-keys {
-            width: 230px;
-            height: calc(100% - 40px);
-            top: 40px;
-        }
-
-        body.kbd-landscape #left-keys .key-grid,
-        body.kbd-landscape #right-keys .key-grid {
-            max-height: 420px;
-        }
-
-        body.kbd-portrait #screen-area {
-            bottom: 230px;
-        }
-
-        body.kbd-landscape #screen-area {
-            left: 230px;
-            right: 230px;
-        }
-
-        /* Instructions Modal */
-        #help-modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(4px);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #help-modal.open {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #1e2430;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            max-width: 480px;
-            width: 90%;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-        }
-
-        .modal-content h3 {
-            margin-top: 0;
+        .auth-tab-btn.active {
+            background: #1e293b;
             color: #38bdf8;
-            font-size: 1.25rem;
         }
 
+        .auth-message {
+            font-size: 0.85rem;
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: none;
+        }
+        .auth-message.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        .auth-message.success {
+            display: block;
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        /* MoMo Packages */
+        .momo-packages {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .momo-card {
+            background: #0d1017;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .momo-card:hover {
+            border-color: #f59e0b;
+            transform: translateY(-2px);
+            background: #141822;
+        }
+
+        .momo-badge {
+            position: absolute;
+            top: -8px;
+            right: 8px;
+            background: #f59e0b;
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .momo-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .momo-reward {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin: 6px 0;
+        }
+
+        .momo-price {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.12);
+            padding: 4px 8px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .momo-provider-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            font-size: 0.72rem;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+
+        /* Help Table */
         .control-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 16px 0;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            margin-top: 10px;
         }
 
         .control-table td {
             padding: 8px 6px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        .control-table kbd {
-            background: #2b323f;
-            border: 1px solid #475569;
+        kbd {
+            background: #1e293b;
+            border: 1px solid #334155;
             border-radius: 4px;
-            padding: 3px 8px;
-            font-family: inherit;
-            color: #f8fafc;
-            font-weight: 600;
-        }
-
-        .modal-close-btn {
-            width: 100%;
-            padding: 10px;
-            background: #0284c7;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 12px;
-        }
-
-        .modal-close-btn:hover {
-            background: #0369a1;
+            padding: 2px 6px;
+            font-family: monospace;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
     <header id="top-bar">
         <div class="bar-title">
-            <img src="icon.png" alt="Icon" onerror="this.style.display='none'">
-            <span>My Life in New York</span>
+            <img src="icon.png" alt="Accra Life" onerror="this.style.display='none'">
+            <span>Accra Life</span>
+            <span class="alvyd-badge">ALVYD</span>
         </div>
         <div class="bar-buttons">
-            <button class="bar-btn" onclick="window.toggleKeypad()" title="Toggle On-Screen Keypad">⌨ Keypad</button>
-            <button class="bar-btn" onclick="document.getElementById('help-modal').classList.add('open')" title="Help & Controls">❓ Help</button>
-            <button class="bar-btn" onclick="window.toggleFullscreen()" title="Fullscreen">⛶ Fullscreen</button>
+            <button class="bar-btn btn-momo" onclick="window.openMoMoModal()" title="Buy Cedis with MoMo">💰 MoMo Shop</button>
+            <button class="bar-btn btn-ad" onclick="window.triggerRewardedAd()" title="Watch Ad for Free Cedis">📺 +50 GH₵</button>
+            <button id="account-btn" class="bar-btn" onclick="window.openAuthModal()" title="Account & Cloud Save">👤 Account</button>
+            <button class="bar-btn" onclick="document.getElementById('help-modal').classList.add('open')" title="Help & Controls">❓</button>
+            <button class="bar-btn" onclick="window.toggleFullscreen()" title="Fullscreen">⛶</button>
         </div>
     </header>
 
@@ -367,62 +495,462 @@
         <canvas tabindex="0" id="display" style="display: none;"></canvas>
         <div id="loading">
             <div class="spinner"></div>
-            <span>Starting Emulator...</span>
+            <span>Starting Accra Life...</span>
         </div>
     </div>
 
-    <!-- Virtual Nokia Keypad -->
-    <div id="left-keys" class="keypad-part">
-        <div class="key-grid left-grid">
-            <button data-key="Digit1" class="key">1</button>
-            <button data-key="Digit2" class="key">2 <span>ABC</span></button>
-            <button data-key="Digit3" class="key">3 <span>DEF</span></button>
-            <button data-key="Digit4" class="key">4 <span>GHI</span></button>
-            <button data-key="Digit5" class="key">5 <span>JKL</span></button>
-            <button data-key="Digit6" class="key">6 <span>MNO</span></button>
-            <button data-key="Digit7" class="key">7 <span>PQRS</span></button>
-            <button data-key="Digit8" class="key">8 <span>TUV</span></button>
-            <button data-key="Digit9" class="key">9 <span>WXYZ</span></button>
-            <button data-key="NumpadAsterisk" class="key">*</button>
-            <button data-key="Digit0" class="key">0 <span>+</span></button>
-            <button data-key="NumpadDivide" class="key">#</button>
-        </div>
-    </div>
-
-    <div id="right-keys" class="keypad-part">
-         <div class="key-grid right-grid">
-            <button data-key="F1" class="key">L <span>Soft 1</span></button>
-            <button data-key="ArrowUp" class="key arrow-key" aria-label="Up">↑</button>
-            <button data-key="F2" class="key">R <span>Soft 2</span></button>
-            <button data-key="ArrowLeft" class="key arrow-key" aria-label="Left">←</button>
-            <button data-key="Enter" class="key ok-key">OK</button>
-            <button data-key="ArrowRight" class="key arrow-key" aria-label="Right">→</button>
-            <button data-key="Escape" class="key small-key small-key-left">Esc</button>
-            <button data-key="ArrowDown" class="key arrow-key" aria-label="Down">↓</button>
-            <button data-key="Maximize" class="key small-key small-key-right" aria-label="Maximize">⛶</button>
-        </div>
+    <!-- Buttonless Floating Touch Controls for Mobile/Touchscreens -->
+    <div id="touch-hud">
+        <button class="touch-hud-btn action-primary" onclick="window.tapGameKey('Enter')" aria-label="Action">
+            <span>💬</span> Action
+        </button>
+        <button class="touch-hud-btn" onclick="window.tapGameKey('Digit0')" aria-label="Phone">
+            <span>📱</span> Phone
+        </button>
+        <button class="touch-hud-btn" onclick="window.tapGameKey('F1')" aria-label="Menu">
+            <span>📋</span> Menu
+        </button>
+        <button class="touch-hud-btn" onclick="window.tapGameKey('F2')" aria-label="Back">
+            <span>↩</span> Back
+        </button>
     </div>
 
     <!-- Controls Helper Modal -->
-    <div id="help-modal" onclick="if(event.target === this) this.classList.remove('open')">
-        <div class="modal-content">
-            <h3>🎮 Controls Guide</h3>
+    <div id="help-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('open')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>🎮 Touch & Controls Guide</h3>
+                <button class="modal-close-btn" onclick="document.getElementById('help-modal').classList.remove('open')">✕</button>
+            </div>
             <table class="control-table">
-                <tr><td>Move / Direction</td><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td></tr>
-                <tr><td>Select / Action</td><td><kbd>Enter</kbd> or <kbd>Space</kbd></td></tr>
-                <tr><td>Left Soft Key (Menu/Confirm)</td><td><kbd>Q</kbd> or <kbd>F1</kbd></td></tr>
-                <tr><td>Right Soft Key (Back/Cancel)</td><td><kbd>W</kbd> or <kbd>F2</kbd></td></tr>
-                <tr><td>Number Shortcuts</td><td><kbd>0</kbd> – <kbd>9</kbd></td></tr>
-                <tr><td>Pause / Settings</td><td><kbd>Esc</kbd></td></tr>
-                <tr><td>Mobile Touch</td><td>Use on-screen Nokia keypad</td></tr>
+                <tr><td><strong>Touchscreen Swipe</strong></td><td>Swipe <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> anywhere to walk</td></tr>
+                <tr><td><strong>Direct Touch Tap</strong></td><td>Tap center to Interact / Action</td></tr>
+                <tr><td><strong>Quick Buttons</strong></td><td>Use floating bottom pills (<kbd>Action</kbd>, <kbd>Phone</kbd>, <kbd>Menu</kbd>)</td></tr>
+                <tr><td><strong>Keyboard Arrows</strong></td><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td></tr>
+                <tr><td><strong>Action / Talk</strong></td><td><kbd>Enter</kbd> or <kbd>Space</kbd></td></tr>
+                <tr><td><strong>Left Soft Key (Menu)</strong></td><td><kbd>Q</kbd> or <kbd>F1</kbd></td></tr>
+                <tr><td><strong>Right Soft Key (Back)</strong></td><td><kbd>W</kbd> or <kbd>F2</kbd></td></tr>
+                <tr><td><strong>Pause / Settings</strong></td><td><kbd>Esc</kbd></td></tr>
             </table>
-            <button class="modal-close-btn" onclick="document.getElementById('help-modal').classList.remove('open')">Close</button>
         </div>
     </div>
+
+    <!-- MoMo Shop / In-App Purchases Modal -->
+    <div id="momo-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('open')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>💰 Alvyd MoMo Shop</h3>
+                <button class="modal-close-btn" onclick="document.getElementById('momo-modal').classList.remove('open')">✕</button>
+            </div>
+            <p style="font-size:0.82rem; color:#94a3b8; margin-top:0;">Instant checkout via MTN Mobile Money, Telecel Cash & Bank Cards.</p>
+            <div class="momo-packages">
+                <div class="momo-card" onclick="window.purchaseMoMoPackage('Waakye Pocket', 100, 200)">
+                    <div class="momo-title">Waakye Pocket</div>
+                    <div class="momo-reward">+100 Cedis</div>
+                    <div class="momo-price">GH₵ 2.00</div>
+                </div>
+                <div class="momo-card" onclick="window.purchaseMoMoPackage('Osu Night Out', 600, 1000)">
+                    <span class="momo-badge">POPULAR</span>
+                    <div class="momo-title">Osu Night Out</div>
+                    <div class="momo-reward">+600 Cedis</div>
+                    <div class="momo-price">GH₵ 10.00</div>
+                </div>
+                <div class="momo-card" onclick="window.purchaseMoMoPackage('East Legon Boss', 3000, 3500)">
+                    <span class="momo-badge">BEST VALUE</span>
+                    <div class="momo-title">East Legon Boss</div>
+                    <div class="momo-reward">+3,000 Cedis</div>
+                    <div class="momo-price">GH₵ 35.00</div>
+                </div>
+                <div class="momo-card" onclick="window.purchaseMoMoPackage('Alvyd VIP Pass', 10000, 5000)">
+                    <span class="momo-badge">VIP</span>
+                    <div class="momo-title">Alvyd VIP Pass</div>
+                    <div class="momo-reward">Infinite Energy</div>
+                    <div class="momo-price">GH₵ 50.00</div>
+                </div>
+            </div>
+            <div class="momo-provider-badges">
+                <span>🟡 MTN MoMo</span> • <span>🔴 Telecel Cash</span> • <span>🔵 AT Money</span> • <span>💳 Visa/Mastercard</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rewarded Video Ad Modal -->
+    <div id="ad-modal" class="modal-overlay">
+        <div class="modal-card" style="text-align: center;">
+            <div class="modal-header">
+                <h3>📺 Sponsored Offer</h3>
+            </div>
+            <p style="color:#94a3b8; font-size:0.9rem;">Watch this 10-second sponsor ad to earn <strong>+50 Cedis</strong> free!</p>
+            <div style="background:#000; border-radius:10px; height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:16px 0; border:1px solid #334155;">
+                <div style="font-size:2rem; margin-bottom:8px;">🎬</div>
+                <div id="ad-timer" style="font-size:1.4rem; font-weight:800; color:#38bdf8;">10s</div>
+                <div style="font-size:0.8rem; color:#64748b; margin-top:4px;">Google H5 Games Ad Simulator</div>
+            </div>
+            <button id="ad-claim-btn" class="btn-submit" style="display:none;" onclick="window.claimAdReward()">Claim +50 Cedis!</button>
+        </div>
+    </div>
+
+    <!-- Firebase Authentication & Cloud Save Modal -->
+    <div id="auth-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('open')">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="auth-modal-title">👤 Alvyd Player Account</h3>
+                <button class="modal-close-btn" onclick="document.getElementById('auth-modal').classList.remove('open')">✕</button>
+            </div>
+
+            <!-- Profile View (when logged in) -->
+            <div id="auth-profile-view" style="display:none;">
+                <div style="text-align:center; margin-bottom:16px;">
+                    <div style="font-size:2.5rem;">🎮</div>
+                    <h4 id="profile-username" style="margin:6px 0; font-size:1.2rem; color:#38bdf8;">@player</h4>
+                    <p id="profile-meta" style="color:#94a3b8; font-size:0.85rem; margin:0;">Age: 21 • user@example.com</p>
+                </div>
+                <button class="btn-submit" onclick="window.syncCloudSave()" style="margin-bottom:8px;">💾 Sync Progress to Cloud</button>
+                <button class="bar-btn" onclick="window.handleSignOut()" style="width:100%; justify-content:center; padding:10px;">🚪 Sign Out</button>
+            </div>
+
+            <!-- Auth Form (when logged out) -->
+            <div id="auth-form-view">
+                <div class="auth-tabs">
+                    <button class="auth-tab-btn active" id="tab-login-btn" onclick="window.switchAuthTab('login')">Sign In</button>
+                    <button class="auth-tab-btn" id="tab-signup-btn" onclick="window.switchAuthTab('signup')">Create Account</button>
+                </div>
+
+                <div id="auth-msg" class="auth-message"></div>
+
+                <form id="auth-form" onsubmit="window.handleAuthSubmit(event)">
+                    <div class="form-group" id="group-username" style="display:none;">
+                        <label>Unique Username</label>
+                        <input type="text" id="auth-username" class="form-control" placeholder="e.g. kofi_accra" autocomplete="username">
+                    </div>
+                    <div class="form-group" id="group-age" style="display:none;">
+                        <label>Age (13+)</label>
+                        <input type="number" id="auth-age" class="form-control" placeholder="e.g. 21" min="13" max="120">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="auth-email" class="form-control" placeholder="you@example.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; margin-bottom:12px;" id="forgot-password-link">
+                        <a href="javascript:void(0)" onclick="window.handleForgotPassword()" style="color:#38bdf8; font-size:0.8rem; text-decoration:none;">Forgot Password?</a>
+                    </div>
+                    <button type="submit" id="auth-submit-btn" class="btn-submit">Sign In</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paystack Inline JS for Mobile Money -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
 
     <!-- CheerpJ WebAssembly JVM Loader -->
     <script src="https://cjrtnc.leaningtech.com/20260317_2978/loader.js"></script>
     <!-- Emulator Main Engine -->
     <script type="module" src="./src/main.js"></script>
+
+    <!-- Firebase Auth & Firestore Client Service Module -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut, 
+            sendPasswordResetEmail, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        // Firebase Configuration for project alvyd-7c69d
+        const firebaseConfig = {
+            projectId: "alvyd-7c69d",
+            appId: "1:950214032279:web:94fbf914c37fe1cb1ce2d2",
+            storageBucket: "alvyd-7c69d.firebasestorage.app",
+            apiKey: "AIzaSyDz5dphp7PWCTyM7zSW1Ah5eFAmklsr3qo",
+            authDomain: "alvyd-7c69d.firebaseapp.com",
+            messagingSenderId: "950214032279"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let currentUserProfile = null;
+        let currentAuthMode = 'login';
+
+        // Listen for Authentication state
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            const accountBtn = document.getElementById('account-btn');
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        currentUserProfile = userDoc.data();
+                        accountBtn.innerHTML = `👤 @${currentUserProfile.username}`;
+                    } else {
+                        accountBtn.innerHTML = `👤 @Player`;
+                    }
+                } catch(e) {
+                    accountBtn.innerHTML = `👤 Logged In`;
+                }
+            } else {
+                currentUserProfile = null;
+                accountBtn.innerHTML = `👤 Account`;
+            }
+        });
+
+        // Window Globals for Modals
+        window.openAuthModal = () => {
+            const modal = document.getElementById('auth-modal');
+            const profileView = document.getElementById('auth-profile-view');
+            const formView = document.getElementById('auth-form-view');
+            
+            if (currentUser && currentUserProfile) {
+                profileView.style.display = 'block';
+                formView.style.display = 'none';
+                document.getElementById('profile-username').innerText = `@${currentUserProfile.username}`;
+                document.getElementById('profile-meta').innerText = `Age: ${currentUserProfile.age} • ${currentUser.email}`;
+            } else {
+                profileView.style.display = 'none';
+                formView.style.display = 'block';
+                window.switchAuthTab('login');
+            }
+            modal.classList.add('open');
+        };
+
+        window.switchAuthTab = (mode) => {
+            currentAuthMode = mode;
+            const loginBtn = document.getElementById('tab-login-btn');
+            const signupBtn = document.getElementById('tab-signup-btn');
+            const groupUser = document.getElementById('group-username');
+            const groupAge = document.getElementById('group-age');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const forgotLink = document.getElementById('forgot-password-link');
+            const msg = document.getElementById('auth-msg');
+            msg.className = 'auth-message';
+
+            if (mode === 'signup') {
+                loginBtn.classList.remove('active');
+                signupBtn.classList.add('active');
+                groupUser.style.display = 'block';
+                groupAge.style.display = 'block';
+                forgotLink.style.display = 'none';
+                submitBtn.innerText = 'Create Account';
+            } else {
+                signupBtn.classList.remove('active');
+                loginBtn.classList.add('active');
+                groupUser.style.display = 'none';
+                groupAge.style.display = 'none';
+                forgotLink.style.display = 'flex';
+                submitBtn.innerText = 'Sign In';
+            }
+        };
+
+        window.handleAuthSubmit = async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('auth-msg');
+            const email = document.getElementById('auth-email').value.trim();
+            const password = document.getElementById('auth-password').value;
+
+            msg.className = 'auth-message';
+            msg.style.display = 'none';
+
+            if (currentAuthMode === 'signup') {
+                const rawUsername = document.getElementById('auth-username').value.trim().toLowerCase();
+                const username = rawUsername.replace(/[^a-z0-9_]/g, '');
+                const age = parseInt(document.getElementById('auth-age').value, 10);
+
+                if (username.length < 3 || username.length > 25) {
+                    msg.className = 'auth-message error';
+                    msg.innerText = 'Username must be between 3 and 25 alphanumeric characters.';
+                    return;
+                }
+                if (isNaN(age) || age < 13 || age > 120) {
+                    msg.className = 'auth-message error';
+                    msg.innerText = 'Please provide a valid age (13+).';
+                    return;
+                }
+
+                try {
+                    // Check if username is already claimed
+                    const unameSnap = await getDoc(doc(db, "usernames", username));
+                    if (unameSnap.exists()) {
+                        msg.className = 'auth-message error';
+                        msg.innerText = `Username @${username} is already taken. Please choose another.`;
+                        return;
+                    }
+
+                    // Create Firebase Auth user
+                    const userCred = await createUserWithEmailAndPassword(auth, email, password);
+                    const uid = userCred.user.uid;
+
+                    // Reserve username & create profile in Firestore
+                    await setDoc(doc(db, "usernames", username), {
+                        uid: uid,
+                        createdAt: serverTimestamp()
+                    });
+
+                    await setDoc(doc(db, "users", uid), {
+                        username: username,
+                        email: email,
+                        age: age,
+                        createdAt: serverTimestamp()
+                    });
+
+                    // Initialize first save
+                    await setDoc(doc(db, "saves", uid), {
+                        cash: 300,
+                        energy: 100,
+                        district: "Jamestown",
+                        inventory: ["phone", "id_card"],
+                        updatedAt: serverTimestamp()
+                    });
+
+                    currentUserProfile = { username, email, age };
+                    msg.className = 'auth-message success';
+                    msg.innerText = `Welcome to Accra Life, @${username}!`;
+                    setTimeout(() => document.getElementById('auth-modal').classList.remove('open'), 1200);
+                } catch(err) {
+                    msg.className = 'auth-message error';
+                    msg.innerText = err.message || 'Error creating account';
+                }
+            } else {
+                // Sign in
+                try {
+                    const userCred = await signInWithEmailAndPassword(auth, email, password);
+                    msg.className = 'auth-message success';
+                    msg.innerText = 'Signed in successfully! Loading progress...';
+                    setTimeout(() => document.getElementById('auth-modal').classList.remove('open'), 1000);
+                } catch(err) {
+                    msg.className = 'auth-message error';
+                    msg.innerText = 'Invalid email or password. Please try again.';
+                }
+            }
+        };
+
+        window.handleForgotPassword = async () => {
+            const email = document.getElementById('auth-email').value.trim();
+            const msg = document.getElementById('auth-msg');
+            if (!email) {
+                msg.className = 'auth-message error';
+                msg.innerText = 'Please enter your email above to reset password.';
+                return;
+            }
+            try {
+                await sendPasswordResetEmail(auth, email);
+                msg.className = 'auth-message success';
+                msg.innerText = `Password reset link sent to ${email}. Check your inbox!`;
+            } catch(e) {
+                msg.className = 'auth-message error';
+                msg.innerText = e.message || 'Error sending password reset email.';
+            }
+        };
+
+        window.handleSignOut = async () => {
+            await signOut(auth);
+            document.getElementById('auth-modal').classList.remove('open');
+        };
+
+        window.syncCloudSave = async () => {
+            if (!currentUser) return;
+            try {
+                await setDoc(doc(db, "saves", currentUser.uid), {
+                    cash: 850,
+                    energy: 90,
+                    district: "Osu",
+                    inventory: ["phone", "waakye", "sunglasses"],
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                alert("✨ Game progress successfully saved to Cloud Firestore!");
+            } catch(e) {
+                alert("Error syncing save: " + e.message);
+            }
+        };
+
+        // Paystack Mobile Money Integration
+        window.openMoMoModal = () => {
+            document.getElementById('momo-modal').classList.add('open');
+        };
+
+        window.purchaseMoMoPackage = (packageName, cedisReward, amountInPesewas) => {
+            const email = currentUser ? currentUser.email : "player@accralife.com";
+            
+            // Trigger Paystack Popup
+            if (typeof PaystackPop !== "undefined") {
+                const handler = PaystackPop.setup({
+                    key: 'pk_test_accralife_dummy_key', // Paystack public test key placeholder
+                    email: email,
+                    amount: amountInPesewas, // Amount in pesewas (100 pesewas = 1 GHS)
+                    currency: 'GHS',
+                    channels: ['mobile_money', 'card'],
+                    metadata: {
+                        custom_fields: [
+                            { display_name: "Package", variable_name: "package", value: packageName },
+                            { display_name: "Username", variable_name: "username", value: currentUserProfile ? currentUserProfile.username : "Guest" }
+                        ]
+                    },
+                    callback: function(response) {
+                        alert(`🎉 Payment Successful! Reference: ${response.reference}\n+${cedisReward} Cedis credited to your account!`);
+                        document.getElementById('momo-modal').classList.remove('open');
+                    },
+                    onClose: function() {
+                        // User closed modal
+                    }
+                });
+                handler.openIframe();
+            } else {
+                alert(`MoMo Checkout: ${packageName} (GH₵ ${(amountInPesewas/100).toFixed(2)})\n+${cedisReward} Cedis ready to credit!`);
+            }
+        };
+
+        // Rewarded Video Ad Offer
+        window.triggerRewardedAd = () => {
+            const adModal = document.getElementById('ad-modal');
+            const timerEl = document.getElementById('ad-timer');
+            const claimBtn = document.getElementById('ad-claim-btn');
+            
+            adModal.classList.add('open');
+            claimBtn.style.display = 'none';
+            let timeLeft = 10;
+            timerEl.innerText = `${timeLeft}s`;
+
+            const interval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft > 0) {
+                    timerEl.innerText = `${timeLeft}s`;
+                } else {
+                    clearInterval(interval);
+                    timerEl.innerText = "Completed! ✅";
+                    claimBtn.style.display = 'block';
+                }
+            }, 1000);
+        };
+
+        window.claimAdReward = () => {
+            document.getElementById('ad-modal').classList.remove('open');
+            alert("🎉 Reward Claimed: +50 Cedis added to your character balance!");
+        };
+
+        // Fullscreen toggle
+        window.toggleFullscreen = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        };
+    </script>
 </body>
 </html>

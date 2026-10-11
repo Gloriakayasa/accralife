@@ -36,28 +36,18 @@ function autoscale() {
     let screenWidth = window.innerWidth;
     let screenHeight = window.innerHeight;
 
-    if (isMobile) {
-        document.getElementById('left-keys').style.display = '';
-        document.getElementById('right-keys').style.display = '';
-
-        if (screenWidth > screenHeight) {
-            document.body.classList.add('kbd-landscape');
-            document.body.classList.remove('kbd-portrait');
-            screenWidth = screenWidth - 2*kbdWidth;
-        } else {
-            document.body.classList.add('kbd-portrait');
-            document.body.classList.remove('kbd-landscape');
-            screenHeight = screenHeight - kbdHeight;
-        }
-    }
+    const leftKeys = document.getElementById('left-keys');
+    const rightKeys = document.getElementById('right-keys');
+    if (leftKeys) leftKeys.style.display = 'none';
+    if (rightKeys) rightKeys.style.display = 'none';
 
     let scale = Math.min(
-        screenWidth/screenCtx.canvas.width,
-        screenHeight/screenCtx.canvas.height
+        screenWidth / screenCtx.canvas.width,
+        (screenHeight - 48) / screenCtx.canvas.height
     );
 
     if (!fractionScale) {
-        scale = scale|0;
+        scale = Math.max(1, scale | 0);
     }
 
     display.style.zoom = scale;
@@ -66,6 +56,21 @@ function autoscale() {
 function setListeners() {
     let mouseDown = false;
     let noMouse = false;
+
+    window.tapGameKey = (key, duration = 120) => {
+        if (!codeMap[key]) return;
+        const symbol = key.startsWith('Digit') ? key.substring(5) : '\x00';
+        keyRepeatManager.post(true, key, {symbol, ctrlKey: false, shiftKey: false});
+        setTimeout(() => {
+            keyRepeatManager.post(false, key, {symbol, ctrlKey: false, shiftKey: false});
+        }, duration);
+    };
+
+    window.sendGameKey = (key, isDown = true) => {
+        if (!codeMap[key]) return;
+        const symbol = key.startsWith('Digit') ? key.substring(5) : '\x00';
+        keyRepeatManager.post(isDown, key, {symbol, ctrlKey: false, shiftKey: false});
+    };
 
     setKbdHandler((isDown, key) => {
         const symbol = key.startsWith('Digit') ? key.substring(5) : '\x00';
@@ -148,9 +153,19 @@ function setListeners() {
     });
 
 
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
     display.addEventListener('touchstart', async e => {
         display.focus();
         noMouse = true;
+
+        if (e.changedTouches.length > 0) {
+            touchStartX = e.changedTouches[0].clientX;
+            touchStartY = e.changedTouches[0].clientY;
+            touchStartTime = Date.now();
+        }
 
         evtQueue.queueEvent({
             kind: 'pointerpressed',
@@ -181,6 +196,42 @@ function setListeners() {
             x: (e.changedTouches[0].pageX - display.offsetLeft) / display.currentCSSZoom | 0,
             y: (e.changedTouches[0].pageY - display.offsetTop) / display.currentCSSZoom | 0,
         });
+
+        if (e.changedTouches.length > 0) {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const dt = Date.now() - touchStartTime;
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const absX = Math.abs(dx);
+            const absY = Math.abs(dy);
+
+            if (absX > 30 || absY > 30) {
+                if (absX > absY) {
+                    if (dx > 0) window.tapGameKey('ArrowRight');
+                    else window.tapGameKey('ArrowLeft');
+                } else {
+                    if (dy > 0) window.tapGameKey('ArrowDown');
+                    else window.tapGameKey('ArrowUp');
+                }
+            } else if (dt < 400) {
+                const rect = display.getBoundingClientRect();
+                const relX = (touchEndX - rect.left) / rect.width;
+                const relY = (touchEndY - rect.top) / rect.height;
+
+                if (relX < 0.2) {
+                    window.tapGameKey('ArrowLeft');
+                } else if (relX > 0.8) {
+                    window.tapGameKey('ArrowRight');
+                } else if (relY < 0.2) {
+                    window.tapGameKey('ArrowUp');
+                } else if (relY > 0.8) {
+                    window.tapGameKey('ArrowDown');
+                } else {
+                    window.tapGameKey('Enter');
+                }
+            }
+        }
 
         e.preventDefault();
     });
