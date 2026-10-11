@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Life in New York - Nokia E71/E72 Web Edition</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #12151b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #e0e0e0;
+        }
+
+        /* Top control bar */
+        #top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: rgba(18, 21, 27, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bar-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #f1f5f9;
+            letter-spacing: 0.5px;
+        }
+
+        .bar-title img {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+        }
+
+        .bar-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .bar-btn {
+            background: #272c36;
+            color: #cbd5e1;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .bar-btn:hover {
+            background: #333a47;
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Screen Area */
+        #screen-area {
+            background-color: #0f1115;
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        #display {
+            background-color: black;
+            zoom: 1;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            border-radius: 2px;
+        }
+
+        #display:focus {
+            outline: none;
+        }
+
+        #loading {
+            font-size: 1.4rem;
+            font-weight: 500;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Keypad */
+        .keypad-part {
+            background-color: #1a1e26;
+            padding: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            z-index: 50;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .key-grid {
+            display: grid;
+            gap: 6px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .left-grid {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+        }
+
+        .right-grid {
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+        }
+
+        .key {
+            background-color: #2b323f;
+            color: #f1f5f9;
+            border: 1px solid #3b4455;
+            border-radius: 6px;
+            font-size: 1.25em;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: background-color 0.1s ease, transform 0.05s ease;
+            line-height: 1.1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .key span {
+            font-size: 0.4em;
+            font-weight: normal;
+            margin-top: 2px;
+            color: #94a3b8;
+        }
+
+        .key.active, .key:active {
+            background-color: #475569;
+            transform: scale(0.96);
+            border-color: #64748b;
+        }
+
+        .arrow-key {
+            font-size: 1.6em;
+            color: #38bdf8;
+        }
+
+        .ok-key {
+            font-size: 1.2em;
+            background-color: #0369a1;
+            border-color: #0284c7;
+            color: #ffffff;
+        }
+
+        .ok-key.active, .ok-key:active {
+            background-color: #0284c7;
+        }
+
+        .small-key {
+            width: 75%;
+            height: 75%;
+            font-size: 0.9em;
+            align-self: end;
+            padding: 2px;
+            line-height: 1;
+        }
+
+        .small-key-left {
+            justify-self: left;
+        }
+
+        .small-key-right {
+            justify-self: right;
+        }
+
+        #left-keys,
+        #right-keys {
+            display: none;
+            position: absolute;
+            bottom: 0;
+        }
+
+        #left-keys {
+            left: 0;
+        }
+
+        #right-keys {
+            right: 0;
+        }
+
+        /* Portrait & Landscape Layouts for Keypad */
+        body.kbd-portrait #left-keys,
+        body.kbd-portrait #right-keys,
+        body.kbd-landscape #left-keys,
+        body.kbd-landscape #right-keys {
+            display: flex;
+        }
+
+        body.kbd-portrait #left-keys,
+        body.kbd-portrait #right-keys {
+            width: 50%;
+            height: 230px;
+        }
+
+        body.kbd-landscape #left-keys,
+        body.kbd-landscape #right-keys {
+            width: 230px;
+            height: calc(100% - 40px);
+            top: 40px;
+        }
+
+        body.kbd-landscape #left-keys .key-grid,
+        body.kbd-landscape #right-keys .key-grid {
+            max-height: 420px;
+        }
+
+        body.kbd-portrait #screen-area {
+            bottom: 230px;
+        }
+
+        body.kbd-landscape #screen-area {
+            left: 230px;
+            right: 230px;
+        }
+
+        /* Instructions Modal */
+        #help-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #help-modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e2430;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            max-width: 480px;
+            width: 90%;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #38bdf8;
+            font-size: 1.25rem;
+        }
+
+        .control-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        .control-table td {
+            padding: 8px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .control-table kbd {
+            background: #2b323f;
+            border: 1px solid #475569;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-family: inherit;
+            color: #f8fafc;
+            font-weight: 600;
+        }
+
+        .modal-close-btn {
+            width: 100%;
+            padding: 10px;
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .modal-close-btn:hover {
+            background: #0369a1;
+        }
+    </style>
+</head>
+<body>
+    <header id="top-bar">
+        <div class="bar-title">
+            <img src="icon.png" alt="Icon" onerror="this.style.display='none'">
+            <span>My Life in New York</span>
+        </div>
+        <div class="bar-buttons">
+            <button class="bar-btn" onclick="window.toggleKeypad()" title="Toggle On-Screen Keypad">⌨ Keypad</button>
+            <button class="bar-btn" onclick="document.getElementById('help-modal').classList.add('open')" title="Help & Controls">❓ Help</button>
+            <button class="bar-btn" onclick="window.toggleFullscreen()" title="Fullscreen">⛶ Fullscreen</button>
+        </div>
+    </header>
+
+    <div id="screen-area">
+        <canvas tabindex="0" id="display" style="display: none;"></canvas>
+        <div id="loading">
+            <div class="spinner"></div>
+            <span>Starting Emulator...</span>
+        </div>
+    </div>
+
+    <!-- Virtual Nokia Keypad -->
+    <div id="left-keys" class="keypad-part">
+        <div class="key-grid left-grid">
+            <button data-key="Digit1" class="key">1</button>
+            <button data-key="Digit2" class="key">2 <span>ABC</span></button>
+            <button data-key="Digit3" class="key">3 <span>DEF</span></button>
+            <button data-key="Digit4" class="key">4 <span>GHI</span></button>
+            <button data-key="Digit5" class="key">5 <span>JKL</span></button>
+            <button data-key="Digit6" class="key">6 <span>MNO</span></button>
+            <button data-key="Digit7" class="key">7 <span>PQRS</span></button>
+            <button data-key="Digit8" class="key">8 <span>TUV</span></button>
+            <button data-key="Digit9" class="key">9 <span>WXYZ</span></button>
+            <button data-key="NumpadAsterisk" class="key">*</button>
+            <button data-key="Digit0" class="key">0 <span>+</span></button>
+            <button data-key="NumpadDivide" class="key">#</button>
+        </div>
+    </div>
+
+    <div id="right-keys" class="keypad-part">
+         <div class="key-grid right-grid">
+            <button data-key="F1" class="key">L <span>Soft 1</span></button>
+            <button data-key="ArrowUp" class="key arrow-key" aria-label="Up">↑</button>
+            <button data-key="F2" class="key">R <span>Soft 2</span></button>
+            <button data-key="ArrowLeft" class="key arrow-key" aria-label="Left">←</button>
+            <button data-key="Enter" class="key ok-key">OK</button>
+            <button data-key="ArrowRight" class="key arrow-key" aria-label="Right">→</button>
+            <button data-key="Escape" class="key small-key small-key-left">Esc</button>
+            <button data-key="ArrowDown" class="key arrow-key" aria-label="Down">↓</button>
+            <button data-key="Maximize" class="key small-key small-key-right" aria-label="Maximize">⛶</button>
+        </div>
+    </div>
+
+    <!-- Controls Helper Modal -->
+    <div id="help-modal" onclick="if(event.target === this) this.classList.remove('open')">
+        <div class="modal-content">
+            <h3>🎮 Controls Guide</h3>
+            <table class="control-table">
+                <tr><td>Move / Direction</td><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td></tr>
+                <tr><td>Select / Action</td><td><kbd>Enter</kbd> or <kbd>Space</kbd></td></tr>
+                <tr><td>Left Soft Key (Menu/Confirm)</td><td><kbd>Q</kbd> or <kbd>F1</kbd></td></tr>
+                <tr><td>Right Soft Key (Back/Cancel)</td><td><kbd>W</kbd> or <kbd>F2</kbd></td></tr>
+                <tr><td>Number Shortcuts</td><td><kbd>0</kbd> – <kbd>9</kbd></td></tr>
+                <tr><td>Pause / Settings</td><td><kbd>Esc</kbd></td></tr>
+                <tr><td>Mobile Touch</td><td>Use on-screen Nokia keypad</td></tr>
+            </table>
+            <button class="modal-close-btn" onclick="document.getElementById('help-modal').classList.remove('open')">Close</button>
+        </div>
+    </div>
+
+    <!-- CheerpJ WebAssembly JVM Loader -->
+    <script src="https://cjrtnc.leaningtech.com/20260317_2978/loader.js"></script>
+    <!-- Emulator Main Engine -->
+    <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+MIDlet-Name: My Life in New York
+MIDlet-Version: 1.0.2
+MIDlet-Vendor: Gameloft SA
+MIDlet-1: My Life in New York, /icon.png, GloftNYLF
+MicroEdition-Profile: MIDP-2.0
+MicroEdition-Configuration: CLDC-1.1
+MIDlet-Jar-URL: My_Life_in_New_York.jar
+MIDlet-Jar-Size: 875656
+Nokia-MIDlet-Category: Game

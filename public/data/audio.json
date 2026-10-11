@@ -1,0 +1,36 @@
+{
+  "sfx": {
+    "13": "sfx_13.wav",
+    "14": "sfx_14.wav",
+    "15": "sfx_15.wav",
+    "16": "sfx_16.wav",
+    "17": "sfx_17.wav",
+    "18": "sfx_18.wav",
+    "20": "sfx_20.wav",
+    "24": "sfx_24.wav",
+    "25": "sfx_25.wav",
+    "26": "sfx_26.wav",
+    "27": "sfx_27.wav",
+    "28": "sfx_28.wav",
+    "29": "sfx_29.wav",
+    "31": "sfx_31.wav"
+  },
+  "bgm": {
+    "1": "bgm_1.mid",
+    "4": "bgm_4.mid",
+    "5": "bgm_5.mid",
+    "6": "bgm_6.mid",
+    "7": "bgm_7.mid",
+    "8": "bgm_8.mid",
+    "9": "bgm_9.mid",
+    "10": "bgm_10.mid",
+    "11": "bgm_11.mid",
+    "19": "bgm_19.mid",
+    "21": "bgm_21.mid",
+    "22": "bgm_22.mid",
+    "23": "bgm_23.mid",
+    "30": "bgm_30.mid",
+    "32": "bgm_32.mid",
+    "33": "bgm_33.mid"
+  }
+}
