@@ -392,11 +392,11 @@ async function init() {
     if (jarToRun) {
         args = ['jar', cheerpjWebRoot + "/jar/" + jarToRun];
     } else {
-        const appToRun = sp.get('app') || 'nylf';
-        const hasApp = await cjFileBlob("/files/" + appToRun + "/app.jar");
-        if (!hasApp) {
+        const appToRun = sp.get('app') || 'accralife';
+        const hasAccra = await cjFileBlob("/files/accralife/app.jar");
+        if (!hasAccra) {
             try {
-                const res = await fetch(cheerpjWebRoot + "/init.zip");
+                const res = await fetch(cheerpjWebRoot + "/init.zip?v=" + Date.now());
                 if (res.ok) {
                     const ab = await res.arrayBuffer();
                     const launcherUtil = await lib.pl.zb3.freej2me.launcher.LauncherUtil;
@@ -411,7 +411,7 @@ async function init() {
         if (verifyApp) {
             args = ['app', appToRun];
         } else {
-            args = ['jar', cheerpjWebRoot + "/jar/game.jar"];
+            args = ['jar', cheerpjWebRoot + "/jar/game.jar?v=" + Date.now()];
         }
     }
 
