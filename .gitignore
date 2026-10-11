@@ -3,3 +3,7 @@ dist/
 *.log
 .DS_Store
 debug_browser.mjs
+test_emulator.mjs
+.firebase/
+__pycache__/
+*.pyc

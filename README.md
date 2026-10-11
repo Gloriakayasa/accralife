@@ -1,6 +1,6 @@
 # My Life in New York (Nokia E71 / E72 Edition) 🗽🎮
 
-An in-browser WebAssembly port of the classic Java ME / J2ME Gameloft game **My Life in New York**, running at native 320x240 Nokia resolution with original graphics, music, and sound.
+An in-browser WebAssembly port of the classic Java ME / J2ME Alvyd game **My Life in New York**, running at native 320x240 Nokia resolution with original graphics, music, and sound.
 
 ## 🚀 Play Online
 Visit: **[https://gloriakayasa.github.io/accralife/](https://gloriakayasa.github.io/accralife/)**

@@ -113,7 +113,7 @@ export class CharacterCreateState implements GameState {
     ctx.ellipse(stageX + 50, stageY + 130, 32, 12, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Render Real Live Gameloft Character Sprite Walking in Place!
+    // Render Real Live Alvyd Character Sprite Walking in Place!
     game.sprites.drawCharacter(
       ctx,
       this.gender,

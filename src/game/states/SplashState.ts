@@ -47,11 +47,11 @@ export class SplashState implements GameState {
     ctx.fillStyle = '#1e7e48';
     ctx.fillRect(194, 55, 66, 3);
 
-    // Gameloft style banner
+    // Alvyd style banner
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 15px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('GAMELOFT RETRO ARCHIVE', 160, 95);
+    ctx.fillText('ALVYD RETRO ARCHIVE', 160, 95);
 
     ctx.fillStyle = '#f5b82e';
     ctx.font = 'bold 13px monospace';

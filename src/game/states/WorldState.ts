@@ -293,10 +293,10 @@ export class WorldState implements GameState {
   }
 
   render(game: Game, ctx: CanvasRenderingContext2D): void {
-    // 1. Render Authentic Gameloft Environment (pack 9)
+    // 1. Render Authentic Alvyd Environment (pack 9)
     game.sprites.drawEnvironment(ctx, this.currentLocation.id, this.animTimer);
 
-    // 2. Render Authentic Gameloft Furniture & Props (pack 10)
+    // 2. Render Authentic Alvyd Furniture & Props (pack 10)
     for (const item of this.currentLocation.interactables) {
       game.sprites.drawProp(ctx, item.id, item.x, item.y, this.animTimer);
     }
@@ -311,7 +311,7 @@ export class WorldState implements GameState {
       ctx.strokeRect(exit.x, exit.y, exit.w, exit.h);
     }
 
-    // 3. Render Authentic Gameloft NPCs (pack 11)
+    // 3. Render Authentic Alvyd NPCs (pack 11)
     for (const npcId of this.currentLocation.npcs) {
       const npc = ACCRA_NPCS[npcId];
       if (!npc) continue;
@@ -346,7 +346,7 @@ export class WorldState implements GameState {
       }
     }
 
-    // 4. Render Authentic Gameloft Player Sprite (pack 11)
+    // 4. Render Authentic Alvyd Player Sprite (pack 11)
     game.sprites.drawCharacter(
       ctx,
       game.player.appearance.gender,
@@ -361,7 +361,7 @@ export class WorldState implements GameState {
     // 5. Render Interaction Prompt Badge
     this.renderInteractionBadge(ctx);
 
-    // 6. Render Retro Gameloft Top HUD Bar
+    // 6. Render Retro Alvyd Top HUD Bar
     this.renderHUD(game, ctx);
 
     // 7. Notification banner

@@ -56,7 +56,7 @@ export class SpriteManager {
         this.catalog = await res.json();
         this.loaded = true;
 
-        // Preload core Gameloft sprite sheets
+        // Preload core Alvyd sprite sheets
         const coreSheets = [
           // Room environments (Pack 9)
           'sheet_9_2.png',
@@ -273,7 +273,7 @@ export class SpriteManager {
     return this.drawFrame(ctx, pack, rec, fidx, finalX, finalY, finalFlipH, aflipV);
   }
 
-  // --- AUTHENTIC GAMELOFT ROOM BACKGROUND RENDERER ---
+  // --- AUTHENTIC ALVYD ROOM BACKGROUND RENDERER ---
   public drawEnvironment(ctx: CanvasRenderingContext2D, locationId: string, animTimer: number): void {
     if (locationId === 'osu_apartment' || locationId === 'apartment') {
       // Authentic isometric apartment bedroom & living room: 9_2 Frame 0
@@ -321,7 +321,7 @@ export class SpriteManager {
     }
   }
 
-  // --- AUTHENTIC GAMELOFT FURNITURE & INTERACTIVE PROPS ---
+  // --- AUTHENTIC ALVYD FURNITURE & INTERACTIVE PROPS ---
   public drawProp(ctx: CanvasRenderingContext2D, propId: string, x: number, y: number, animTimer: number): void {
     switch (propId) {
       case 'bed':
@@ -380,7 +380,7 @@ export class SpriteManager {
     }
   }
 
-  // --- AUTHENTIC MODULAR GAMELOFT CHARACTER ANIMATOR ---
+  // --- AUTHENTIC MODULAR ALVYD CHARACTER ANIMATOR ---
   public drawCharacter(
     ctx: CanvasRenderingContext2D,
     gender: 'male' | 'female',

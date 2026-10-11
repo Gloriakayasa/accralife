@@ -16,15 +16,9 @@ import midiBridgeNatives from "../libjs/libmidibridge.js";
 const evtQueue = new EventQueue();
 const sp = new URLSearchParams(location.search);
 
-let currentPath = location.pathname;
-if (!currentPath.endsWith('/') && !currentPath.includes('.')) {
-    currentPath = currentPath + '/';
-}
-const cheerpjWebRoot = '/app' + currentPath.replace(/\/[^/]*$/, '');
+const cheerpjWebRoot = '/app'+location.pathname.replace(/\/[^/]*$/,'');
 
-let isMobile = sp.get('mobile') !== null 
-    ? (sp.get('mobile') === '1' || sp.get('mobile') === 'true') 
-    : (window.innerWidth <= 820 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+let isMobile = sp.get('mobile');
 
 let display = null;
 let screenCtx = null;
@@ -36,61 +30,37 @@ const keyRepeatManager = new KeyRepeatManager();
 
 window.evtQueue = evtQueue;
 
-function getZoom() {
-    return display ? (display.currentCSSZoom || parseFloat(display.style.zoom) || 1) : 1;
-}
-
-window.toggleKeypad = function() {
-    isMobile = !isMobile;
-    autoscale();
-};
-
-window.toggleFullscreen = function() {
-    if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-    } else {
-        document.exitFullscreen().catch(() => {});
-    }
-};
-
 function autoscale() {
     if (!scaleSet) return;
 
     let screenWidth = window.innerWidth;
     let screenHeight = window.innerHeight;
 
-    const leftKeys = document.getElementById('left-keys');
-    const rightKeys = document.getElementById('right-keys');
-
     if (isMobile) {
-        if (leftKeys) leftKeys.style.display = '';
-        if (rightKeys) rightKeys.style.display = '';
+        document.getElementById('left-keys').style.display = '';
+        document.getElementById('right-keys').style.display = '';
 
         if (screenWidth > screenHeight) {
             document.body.classList.add('kbd-landscape');
             document.body.classList.remove('kbd-portrait');
-            screenWidth = Math.max(100, screenWidth - 2 * kbdWidth);
+            screenWidth = screenWidth - 2*kbdWidth;
         } else {
             document.body.classList.add('kbd-portrait');
             document.body.classList.remove('kbd-landscape');
-            screenHeight = Math.max(100, screenHeight - kbdHeight);
+            screenHeight = screenHeight - kbdHeight;
         }
-    } else {
-        if (leftKeys) leftKeys.style.display = 'none';
-        if (rightKeys) rightKeys.style.display = 'none';
-        document.body.classList.remove('kbd-landscape', 'kbd-portrait');
     }
 
     let scale = Math.min(
-        screenWidth / screenCtx.canvas.width,
-        screenHeight / screenCtx.canvas.height
+        screenWidth/screenCtx.canvas.width,
+        screenHeight/screenCtx.canvas.height
     );
 
     if (!fractionScale) {
-        scale = scale | 0;
+        scale = scale|0;
     }
 
-    display.style.zoom = Math.max(1, scale);
+    display.style.zoom = scale;
 }
 
 function setListeners() {
@@ -140,8 +110,8 @@ function setListeners() {
 
         evtQueue.queueEvent({
             kind: 'pointerpressed',
-            x: e.offsetX / getZoom() | 0,
-            y: e.offsetY / getZoom() | 0,
+            x: e.offsetX / display.currentCSSZoom | 0,
+            y: e.offsetY / display.currentCSSZoom | 0,
         });
 
         mouseDown = true;
@@ -155,8 +125,8 @@ function setListeners() {
 
         evtQueue.queueEvent({
             kind: 'pointerdragged',
-            x: e.offsetX / getZoom() | 0,
-            y: e.offsetY / getZoom() | 0,
+            x: e.offsetX / display.currentCSSZoom | 0,
+            y: e.offsetY / display.currentCSSZoom | 0,
         });
 
         e.preventDefault();
@@ -170,8 +140,8 @@ function setListeners() {
 
         evtQueue.queueEvent({
             kind: 'pointerreleased',
-            x: (e.pageX - display.offsetLeft) / getZoom() | 0,
-            y: (e.pageY - display.offsetTop) / getZoom() | 0,
+            x: (e.pageX - display.offsetLeft) / display.currentCSSZoom | 0,
+            y: (e.pageY - display.offsetTop) / display.currentCSSZoom | 0,
         });
 
         e.preventDefault();
@@ -184,8 +154,8 @@ function setListeners() {
 
         evtQueue.queueEvent({
             kind: 'pointerpressed',
-            x: (e.changedTouches[0].pageX - display.offsetLeft) / getZoom() | 0,
-            y: (e.changedTouches[0].pageY - display.offsetTop) / getZoom() | 0,
+            x: (e.changedTouches[0].pageX - display.offsetLeft) / display.currentCSSZoom | 0,
+            y: (e.changedTouches[0].pageY - display.offsetTop) / display.currentCSSZoom | 0,
         });
 
         e.preventDefault();
@@ -196,8 +166,8 @@ function setListeners() {
 
         evtQueue.queueEvent({
             kind: 'pointerdragged',
-            x: (e.changedTouches[0].pageX - display.offsetLeft) / getZoom() | 0,
-            y: (e.changedTouches[0].pageY - display.offsetTop) / getZoom() | 0,
+            x: (e.changedTouches[0].pageX - display.offsetLeft) / display.currentCSSZoom | 0,
+            y: (e.changedTouches[0].pageY - display.offsetTop) / display.currentCSSZoom | 0,
         });
 
         e.preventDefault();
@@ -208,8 +178,8 @@ function setListeners() {
 
         evtQueue.queueEvent({
             kind: 'pointerreleased',
-            x: (e.changedTouches[0].pageX - display.offsetLeft) / getZoom() | 0,
-            y: (e.changedTouches[0].pageY - display.offsetTop) / getZoom() | 0,
+            x: (e.changedTouches[0].pageX - display.offsetLeft) / display.currentCSSZoom | 0,
+            y: (e.changedTouches[0].pageY - display.offsetTop) / display.currentCSSZoom | 0,
         });
 
         e.preventDefault();
@@ -266,6 +236,7 @@ async function init() {
 
     display = document.getElementById('display');
     screenCtx = display.getContext('2d');
+    window.screenCtx = screenCtx;
 
     setListeners();
 
@@ -298,11 +269,7 @@ async function init() {
             },
             async Java_pl_zb3_freej2me_bridge_shell_Shell_setCanvasSize(lib, width, height) {
                 if (!scaleSet) {
-                    const loadingEl = document.getElementById('loading');
-                    if (loadingEl) {
-                        loadingEl.hidden = true;
-                        loadingEl.style.display = 'none';
-                    }
+                    document.getElementById('loading').hidden = true;
                     display.style.display = '';
                     scaleSet = true;
                     display.focus();
@@ -351,6 +318,17 @@ async function init() {
         }
     });
 
+    if (typeof cheerpjAddCustomConsole === 'function') {
+        cheerpjAddCustomConsole((buf) => {
+            try {
+                const text = new TextDecoder('utf-8').decode(buf);
+                console.log('[JAVA STDOUT]', text.trimEnd());
+            } catch (e) {
+                console.log('[JAVA STDOUT]', buf);
+            }
+        });
+    }
+
     document.getElementById("loading").textContent = "Loading...";
 
     const lib = await cheerpjRunLibrary(cheerpjWebRoot+"/freej2me-web.jar");
@@ -359,12 +337,12 @@ async function init() {
 
     let args;
 
-    const app = sp.get('app') || 'nylf';
-    if (app && app !== 'jar') {
-        await ensureAppInstalled(lib, app);
-        args = ['app', app];
+    const appToRun = sp.get('app') || (!sp.get('jar') ? 'nylf' : null);
+    if (appToRun) {
+        await ensureAppInstalled(lib, appToRun);
+        args = ['app', appToRun];
     } else {
-        args = ['jar', cheerpjWebRoot + "/jar/" + (sp.get('jar') || "game.jar")];
+        args = ['jar', cheerpjWebRoot+"/jar/" + (sp.get('jar') || "game.jar")];
     }
 
     FreeJ2ME.main(args).catch(e => {

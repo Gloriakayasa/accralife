@@ -81,7 +81,7 @@ export class MenuState implements GameState {
   }
 
   render(game: Game, ctx: CanvasRenderingContext2D): void {
-    // 1. Authentic Gameloft Retro City Map Backdrop (Pack 9_9 Frame 0)
+    // 1. Authentic Alvyd Retro City Map Backdrop (Pack 9_9 Frame 0)
     ctx.fillStyle = '#080c16';
     ctx.fillRect(0, 0, 320, 240);
     game.sprites.drawFrame(ctx, 9, 9, 0, 0, 0);

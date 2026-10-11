@@ -100,37 +100,32 @@ function createSerializedWrapper(methodsObject) {
 }
 
 
-const ctx = document.createElement('canvas').getContext('2d');
-ctx.canvas.width = 10; ctx.canvas.height = 10;
-//document.body.appendChild(ctx.canvas);
-
 async function transformBitmapOrCanvas(src, sx, sy, sw, sh, a90, mirror) {
   if (a90 == 0 && !mirror) {
     return await createImageBitmap(src, sx, sy, sw, sh);
   }
 
   const swap = a90 & 1;
+  const canvas = document.createElement('canvas');
+  canvas.width = swap ? sh : sw;
+  canvas.height = swap ? sw : sh;
+  const c = canvas.getContext('2d');
 
-  ctx.canvas.width = swap ? sh : sw;
-  ctx.canvas.height = swap ? sw : sh;
-
-  ctx.save();
   if (a90 || mirror) {
-    ctx.translate(ctx.canvas.width/2, ctx.canvas.height/2);
+    c.translate(canvas.width / 2, canvas.height / 2);
     if (mirror) {
-      ctx.scale(swap ? 1 : -1, swap ? -1 : 1);
+      c.scale(swap ? 1 : -1, swap ? -1 : 1);
     }
-    ctx.rotate(a90 * 90 * Math.PI / 180);
+    c.rotate(a90 * 90 * Math.PI / 180);
     if (swap) {
-      ctx.translate(-ctx.canvas.height/2, -ctx.canvas.width/2);
+      c.translate(-canvas.height / 2, -canvas.width / 2);
     } else {
-      ctx.translate(-ctx.canvas.width/2, -ctx.canvas.height/2);
+      c.translate(-canvas.width / 2, -canvas.height / 2);
     }
   }
-  ctx.drawImage(src, sx, sy, sw, sh, 0, 0, sw, sh);
-  ctx.restore();
+  c.drawImage(src, sx, sy, sw, sh, 0, 0, sw, sh);
 
-  return await createImageBitmap(ctx.canvas);
+  return await createImageBitmap(canvas);
 }
 
 function castToUint8Clamped(int8) {
@@ -141,16 +136,16 @@ function castToInt8(uint8) {
   return new Int8Array(uint8.buffer, uint8.byteOffset, uint8.byteLength);
 }
 
-
 const CanvasImage = {
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasImage_bitmapFromColor(lib, width, height, r, g, b, a) {
-    ctx.canvas.width = width; ctx.canvas.height = height;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const c = canvas.getContext('2d');
+    c.fillStyle = `rgba(${r} ${g} ${b} / ${a/255})`;
+    c.fillRect(0, 0, width, height);
 
-    // ctx.clearRect(0, 0, width, height); // width always resets it.. I guess
-    ctx.fillStyle = `rgba(${r} ${g} ${b} / ${a/255})`;
-    ctx.fillRect(0, 0, width, height);
-
-    return await createImageBitmap(ctx.canvas);
+    return await createImageBitmap(canvas);
   },
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasImage_bitmapFromBytes(lib, bytes, result) {
     const blob = new Blob([bytes]);
@@ -168,33 +163,33 @@ const CanvasImage = {
     return await transformBitmapOrCanvas(bmp, sx, sy, sw, sh, a90, mirror);
   },
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasImage_bitmapFromRGBAData(lib, rgba, width, height) {
-    ctx.canvas.width = width; ctx.canvas.height = height;
-
     const imageData = new ImageData(castToUint8Clamped(rgba), width, height);
-
-    ctx.putImageData(imageData, 0, 0);
-    return await createImageBitmap(ctx.canvas);
+    return await createImageBitmap(imageData);
   },
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasImage_getRGBAFromBitmap(lib, bmp, sx, sy, width, height) {
-    ctx.canvas.width = width; ctx.canvas.height = height;
-    ctx.drawImage(bmp, sx, sy, width, height, 0, 0, width, height);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const c = canvas.getContext('2d');
+    c.drawImage(bmp, sx, sy, width, height, 0, 0, width, height);
 
-    const imageData = ctx.getImageData(0, 0, width, height);
+    const imageData = c.getImageData(0, 0, width, height);
 
     return castToInt8(imageData.data);
   },
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasImage_setRGBAToBitmap(lib, bmp, rgbaData, x, y, width, height) {
-    // set is not draw, we clear the region
-    // but putImageData doesn't blend
-    ctx.canvas.width = bmp.width; ctx.canvas.height = bmp.height;
-    ctx.drawImage(bmp, 0, 0);
+    const canvas = document.createElement('canvas');
+    canvas.width = bmp.width;
+    canvas.height = bmp.height;
+    const c = canvas.getContext('2d');
+    c.drawImage(bmp, 0, 0);
 
     const imageData = new ImageData(castToUint8Clamped(rgbaData), width, height);
-    ctx.putImageData(imageData, x, y);
+    c.putImageData(imageData, x, y);
 
     bmp.close();
 
-    return await createImageBitmap(ctx.canvas);
+    return await createImageBitmap(canvas);
   },
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasImage_closeBitmap(lib, bmp) {
     bmp.close();
@@ -249,13 +244,13 @@ const CanvasGraphics = ({
   },
 
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasGraphics_drawRGBAData(lib, targetCtx, rgba, width, height, x, y, blend) {
+    const imageData = new ImageData(castToUint8Clamped(rgba), width, height);
     if (blend) {
-      // this is not putImageData, we need to blend here
-      ctx.canvas.width = width; ctx.canvas.height = height;
-      ctx.putImageData(new ImageData(castToUint8Clamped(rgba), width, height), 0, 0);
-      targetCtx.drawImage(ctx.canvas, x, y);
+      const bmp = await createImageBitmap(imageData);
+      targetCtx.drawImage(bmp, x, y);
+      bmp.close();
     } else {
-      targetCtx.putImageData(new ImageData(castToUint8Clamped(rgba), width, height), x, y);
+      targetCtx.putImageData(imageData, x, y);
     }
   },
 
@@ -425,13 +420,6 @@ const CanvasGraphics = ({
   },
 
   async Java_pl_zb3_freej2me_bridge_graphics_CanvasGraphics_drawImage2(lib, ctx, source, sx, sy, dx, dy, width, height, flipY, withAlpha) {
-    if (!withAlpha) {
-      // somehow needed?
-      ctx.save();
-      ctx.fillStyle = 'black';
-      ctx.fillRect(dx, dy, width, height);
-      ctx.restore();
-    }
     if (!flipY) {
       ctx.drawImage(source, sx, sy, width, height, dx, dy, width, height);
     } else {
@@ -469,4 +457,4 @@ export default {
   async Java_pl_zb3_freej2me_bridge_graphics_Utils_getCanvasFromCtx(lib, ctx) {
     return ctx.canvas;
   },
-}
+};

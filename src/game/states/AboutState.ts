@@ -80,7 +80,7 @@ export class AboutState implements GameState {
 
     drawHeader('ACCRA LIFE');
     drawLine('★ Nokia E71/E72 Landscape Retro Port ★', '#8ea2c6');
-    drawLine('Authentic Gameloft Pixel Engine', '#8ea2c6');
+    drawLine('Authentic Alvyd Pixel Engine', '#8ea2c6');
     curY += 8;
 
     drawHeader('THE ACCRA EXPERIENCE');
@@ -93,7 +93,7 @@ export class AboutState implements GameState {
     curY += 8;
 
     drawHeader('AUTHENTIC GRAPHICS & AUDIO');
-    drawLine('• Real Gameloft ASprite sheets (Pack 9-15)');
+    drawLine('• Real Alvyd ASprite sheets (Pack 9-15)');
     drawLine('• Full Character Walk Cycles & Stances');
     drawLine('• Authentic Sound Effects & Afrobeats Synths');
     drawLine('• ChalePhone PDA with MoMo Wallet');
