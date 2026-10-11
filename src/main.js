@@ -388,12 +388,31 @@ async function init() {
 
     let args;
 
-    const appToRun = sp.get('app') || (!sp.get('jar') ? 'nylf' : null);
-    if (appToRun) {
-        await ensureAppInstalled(lib, appToRun);
-        args = ['app', appToRun];
+    const jarToRun = sp.get('jar');
+    if (jarToRun) {
+        args = ['jar', cheerpjWebRoot + "/jar/" + jarToRun];
     } else {
-        args = ['jar', cheerpjWebRoot+"/jar/" + (sp.get('jar') || "game.jar")];
+        const appToRun = sp.get('app') || 'nylf';
+        const hasApp = await cjFileBlob("/files/" + appToRun + "/app.jar");
+        if (!hasApp) {
+            try {
+                const res = await fetch(cheerpjWebRoot + "/init.zip");
+                if (res.ok) {
+                    const ab = await res.arrayBuffer();
+                    const launcherUtil = await lib.pl.zb3.freej2me.launcher.LauncherUtil;
+                    await launcherUtil.importData(new Int8Array(ab));
+                }
+            } catch (err) {
+                console.warn('init.zip import failed, using direct jar', err);
+            }
+        }
+
+        const verifyApp = await cjFileBlob("/files/" + appToRun + "/app.jar");
+        if (verifyApp) {
+            args = ['app', appToRun];
+        } else {
+            args = ['jar', cheerpjWebRoot + "/jar/game.jar"];
+        }
     }
 
     FreeJ2ME.main(args).catch(e => {

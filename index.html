@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Accra Life - Alvyd Retro Mobile Simulator</title>
     <link rel="icon" type="image/png" href="icon.png">
+    <!-- Google AdSense for Games -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3985878289597879" crossorigin="anonymous"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -644,9 +646,6 @@
         </div>
     </div>
 
-    <!-- Paystack Inline JS for Mobile Money -->
-    <script src="https://js.paystack.co/v1/inline.js"></script>
-
     <!-- CheerpJ WebAssembly JVM Loader -->
     <script src="https://cjrtnc.leaningtech.com/20260317_2978/loader.js"></script>
     <!-- Emulator Main Engine -->
@@ -887,31 +886,39 @@
         window.purchaseMoMoPackage = (packageName, cedisReward, amountInPesewas) => {
             const email = currentUser ? currentUser.email : "player@accralife.com";
             
-            // Trigger Paystack Popup
-            if (typeof PaystackPop !== "undefined") {
-                const handler = PaystackPop.setup({
-                    key: 'pk_test_accralife_dummy_key', // Paystack public test key placeholder
-                    email: email,
-                    amount: amountInPesewas, // Amount in pesewas (100 pesewas = 1 GHS)
-                    currency: 'GHS',
-                    channels: ['mobile_money', 'card'],
-                    metadata: {
-                        custom_fields: [
-                            { display_name: "Package", variable_name: "package", value: packageName },
-                            { display_name: "Username", variable_name: "username", value: currentUserProfile ? currentUserProfile.username : "Guest" }
-                        ]
-                    },
-                    callback: function(response) {
-                        alert(`🎉 Payment Successful! Reference: ${response.reference}\n+${cedisReward} Cedis credited to your account!`);
-                        document.getElementById('momo-modal').classList.remove('open');
-                    },
-                    onClose: function() {
-                        // User closed modal
-                    }
-                });
-                handler.openIframe();
+            const runCheckout = () => {
+                if (typeof PaystackPop !== "undefined") {
+                    const handler = PaystackPop.setup({
+                        key: 'pk_test_accralife_dummy_key',
+                        email: email,
+                        amount: amountInPesewas,
+                        currency: 'GHS',
+                        channels: ['mobile_money', 'card'],
+                        metadata: {
+                            custom_fields: [
+                                { display_name: "Package", variable_name: "package", value: packageName },
+                                { display_name: "Username", variable_name: "username", value: currentUserProfile ? currentUserProfile.username : "Guest" }
+                            ]
+                        },
+                        callback: function(response) {
+                            alert(`🎉 Payment Successful! Reference: ${response.reference}\n+${cedisReward} Cedis credited to your account!`);
+                            document.getElementById('momo-modal').classList.remove('open');
+                        }
+                    });
+                    handler.openIframe();
+                } else {
+                    alert(`MoMo Checkout: ${packageName} (GH₵ ${(amountInPesewas/100).toFixed(2)})\n+${cedisReward} Cedis ready to credit!`);
+                }
+            };
+
+            if (typeof PaystackPop === "undefined") {
+                const s = document.createElement("script");
+                s.src = "https://js.paystack.co/v1/inline.js";
+                s.onload = runCheckout;
+                s.onerror = () => runCheckout();
+                document.head.appendChild(s);
             } else {
-                alert(`MoMo Checkout: ${packageName} (GH₵ ${(amountInPesewas/100).toFixed(2)})\n+${cedisReward} Cedis ready to credit!`);
+                runCheckout();
             }
         };
 
