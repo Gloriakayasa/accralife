@@ -40,7 +40,14 @@ export class LibMidi {
 
         const addModuleTask = this.context.audioWorklet.addModule(new URL('worklet.js', import.meta.url).toString());
 
-        const module = await WebAssembly.compileStreaming(fetch(new URL('libmidi.wasm', import.meta.url)));
+        let module;
+        try {
+            module = await WebAssembly.compileStreaming(fetch(new URL('libmidi.wasm', import.meta.url)));
+        } catch (e) {
+            const res = await fetch(new URL('libmidi.wasm', import.meta.url));
+            const buf = await res.arrayBuffer();
+            module = await WebAssembly.compile(buf);
+        }
 
         await addModuleTask;
 

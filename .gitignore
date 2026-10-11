@@ -4,6 +4,9 @@ dist/
 .DS_Store
 debug_browser.mjs
 test_emulator.mjs
+render_icon.mjs
+canvas_*.png
+screen_*.png
 .firebase/
 __pycache__/
 *.pyc

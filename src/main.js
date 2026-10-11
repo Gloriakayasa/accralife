@@ -101,7 +101,6 @@ function setListeners() {
                 autoscale();
             }
         } else if (codeMap[key]) {
-            console.log('queuin event');
             evtQueue.queueEvent({
                 kind: kind === 'up' ? 'keyup' : 'keydown',
                 args: [codeMap[key], args.symbol, args.ctrlKey, args.shiftKey]
@@ -255,35 +254,16 @@ function setListeners() {
 }
 
 function setFaviconFromBuffer(arrayBuffer) {
-    const blob = new Blob([arrayBuffer], { type: 'image/png' });
-
-    const reader = new FileReader();
-    reader.onload = function() {
-        const dataURL = reader.result;
-
-        let link = document.querySelector("link[rel*='icon']");
-        if (!link) {
-            link = document.createElement('link');
-            link.setAttribute('rel', 'icon');
-            document.head.appendChild(link);
-        }
-        link.setAttribute('href', dataURL);
-    };
-    reader.readAsDataURL(blob);
+    // Keep custom high-res Accra Life SVG/PNG favicon; do not overwrite
 }
 
-async function ensureAppInstalled(lib, appId) {
-    const appFile = await cjFileBlob(appId + "/app.jar");
-
-    if (!appFile) {
-        const launcherUtil = await lib.pl.zb3.freej2me.launcher.LauncherUtil;
-
-        await launcherUtil.installFromBundle(cheerpjWebRoot + "/apps/", appId);
-    }
+function updateLoadingStatus(msg) {
+    const el = document.getElementById("loading-status");
+    if (el) el.textContent = msg;
 }
 
 async function init() {
-    document.getElementById("loading").textContent = "Loading CheerpJ...";
+    updateLoadingStatus("Starting Accra Life...");
 
     display = document.getElementById('display');
     screenCtx = display.getContext('2d');
@@ -291,12 +271,18 @@ async function init() {
 
     setListeners();
 
-    window.libmidi = new LibMidi(createUnlockingAudioContext());
-    await window.libmidi.init();
-    window.libmidi.midiPlayer.addEventListener('end-of-media', e => {
-        window.evtQueue.queueEvent({kind: 'player-eom', player: e.target});
-    })
+    try {
+        window.libmidi = new LibMidi(createUnlockingAudioContext());
+        await window.libmidi.init();
+        window.libmidi.midiPlayer.addEventListener('end-of-media', e => {
+            window.evtQueue.queueEvent({kind: 'player-eom', player: e.target});
+        });
+    } catch(err) {
+        console.warn("MIDI audio initialization deferred or unsupported:", err);
+    }
     window.libmedia = new LibMedia();
+
+    updateLoadingStatus("Preparing game engine...");
 
     await cheerpjInit({
         enableDebug: false,
@@ -308,19 +294,21 @@ async function init() {
             ...mediaBridgeNatives,
             ...midiBridgeNatives,
             async Java_pl_zb3_freej2me_bridge_shell_Shell_setTitle(lib, title) {
-                document.title = title;
+                document.title = "Accra Life - Alvyd Retro Mobile Simulator";
             },
             async Java_pl_zb3_freej2me_bridge_shell_Shell_setIcon(lib, iconBytes) {
-                if (iconBytes) {
-                    setFaviconFromBuffer(iconBytes.buffer);
-                }
+                // Keep custom high-res Accra Life SVG/PNG favicon; do not overwrite with 16x16 icon
             },
             async Java_pl_zb3_freej2me_bridge_shell_Shell_getScreenCtx(lib) {
                 return screenCtx;
             },
             async Java_pl_zb3_freej2me_bridge_shell_Shell_setCanvasSize(lib, width, height) {
                 if (!scaleSet) {
-                    document.getElementById('loading').hidden = true;
+                    const loadEl = document.getElementById('loading');
+                    if (loadEl) {
+                        loadEl.hidden = true;
+                        loadEl.style.display = 'none';
+                    }
                     display.style.display = '';
                     scaleSet = true;
                     display.focus();
@@ -380,9 +368,10 @@ async function init() {
         });
     }
 
-    document.getElementById("loading").textContent = "Loading...";
+    updateLoadingStatus("Loading game engine...");
 
     const lib = await cheerpjRunLibrary(cheerpjWebRoot+"/freej2me-web.jar");
+    window.lib = lib;
 
     const FreeJ2ME = await lib.org.recompile.freej2me.FreeJ2ME;
 
@@ -393,34 +382,42 @@ async function init() {
         args = ['jar', cheerpjWebRoot + "/jar/" + jarToRun];
     } else {
         const appToRun = sp.get('app') || 'accralife';
-        const hasAccra = await cjFileBlob("/files/accralife/app.jar");
-        if (!hasAccra) {
-            try {
-                const res = await fetch(cheerpjWebRoot + "/init.zip?v=" + Date.now());
-                if (res.ok) {
-                    const ab = await res.arrayBuffer();
-                    const launcherUtil = await lib.pl.zb3.freej2me.launcher.LauncherUtil;
-                    await launcherUtil.importData(new Int8Array(ab));
+        updateLoadingStatus("Loading Accra Life...");
+
+        try {
+            const hasApp = await cjFileBlob(appToRun + "/app.jar") || await cjFileBlob("/files/" + appToRun + "/app.jar");
+            if (!hasApp) {
+                const launcherUtil = await lib.pl.zb3.freej2me.launcher.LauncherUtil;
+                try {
+                    await launcherUtil.installFromBundle(cheerpjWebRoot + "/apps/", appToRun);
+                } catch(e) {
+                    console.warn("installFromBundle failed, trying init.zip:", e);
+                    const zipPath = (location.pathname.replace(/\/[^/]*$/, '') || '') + "/init.zip";
+                    const res = await fetch(zipPath);
+                    if (res.ok) {
+                        const ab = await res.arrayBuffer();
+                        await launcherUtil.importData(new Int8Array(ab));
+                    }
                 }
-            } catch (err) {
-                console.warn('init.zip import failed, using direct jar', err);
             }
+        } catch(e) {
+            console.warn("App verification failed, fallback to direct jar:", e);
         }
 
-        const verifyApp = await cjFileBlob("/files/" + appToRun + "/app.jar");
+        const verifyApp = await cjFileBlob(appToRun + "/app.jar") || await cjFileBlob("/files/" + appToRun + "/app.jar");
         if (verifyApp) {
             args = ['app', appToRun];
         } else {
-            args = ['jar', cheerpjWebRoot + "/jar/game.jar?v=" + Date.now()];
+            args = ['jar', cheerpjWebRoot + "/jar/game.jar"];
         }
     }
 
+    updateLoadingStatus("Starting Accra Life...");
+
     FreeJ2ME.main(args).catch(e => {
         e.printStackTrace();
-        document.getElementById('loading').textContent = 'Crash :(';
+        updateLoadingStatus("Error starting game. Tap to reload.");
     });
-
-
 }
 
 init();
