@@ -16,9 +16,13 @@
       "package.json",
       "package-lock.json",
       "test_*.mjs",
+      "inspect_*.mjs",
+      "extract_*.mjs",
+      "analyze_*.mjs",
       "debug_browser.mjs",
       "render_icon.mjs",
       "accralife_3d_*.png",
+      "accra_clone_*.png",
       "test_*.png",
       "touch_*.png",
       "*.py"
