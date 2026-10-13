@@ -358,6 +358,7 @@ export class WorldManager {
         this.scene = scene;
         this.environmentGroup = new THREE.Group();
         this.interactables = [];
+        this.interactivePoints = [];
         this.floatingBadges = [];
         this.miniTrotros = [];
         this.pedestrians = [];
@@ -464,6 +465,7 @@ export class WorldManager {
             this.environmentGroup.remove(this.environmentGroup.children[0]);
         }
         this.interactables = [];
+        this.interactivePoints = [];
         this.floatingBadges = [];
         this.miniTrotros = [];
         this.pedestrians = [];
@@ -676,6 +678,9 @@ export class WorldManager {
 
         // 16. Floating Sea Plots Billboard (Gulf of Guinea)
         this.createSeaPlotsBillboard();
+
+        // 17. Jamestown Compound House (Kwame's Hustler Compound Home)
+        this.buildJamestownCompoundHouse(-28, 4);
     }
 
     // --- ARCHITECTURAL LANDMARK BUILDERS ---
@@ -1061,6 +1066,12 @@ export class WorldManager {
         const group = new THREE.Group();
         group.position.set(x, 0, z);
 
+        // Compound Base Courtyard Ground
+        const patio = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), this.materials.sidewalkConcrete);
+        patio.rotation.x = -Math.PI / 2;
+        patio.position.y = 0.02;
+        group.add(patio);
+
         // Perimeter Security Compound Wall with Electric Wire
         const wallMat = this.materials.whiteMarble;
         const leftWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 1.6, 9), wallMat);
@@ -1086,6 +1097,28 @@ export class WorldManager {
         balc.position.set(0, 2.6, 1.8);
         group.add(balc);
 
+        // Master Bedroom Interior: 3D Luxury King Bed
+        const bedFrame = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.4, 2.5), this.materials.palmTrunk);
+        bedFrame.position.set(1.5, 0.2, -1.8);
+        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.35, 2.3), this.materials.whiteMarble);
+        bedMattress.position.set(1.5, 0.4, -1.8);
+        const duvet = new THREE.Mesh(new THREE.BoxGeometry(2.02, 0.22, 1.6), this.materials.trotroYellow);
+        duvet.position.set(1.5, 0.48, -1.4);
+        const pillow1 = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.4), this.materials.whiteMarble);
+        pillow1.position.set(1.0, 0.6, -2.6);
+        const pillow2 = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.15, 0.4), this.materials.whiteMarble);
+        pillow2.position.set(2.0, 0.6, -2.6);
+        group.add(bedFrame, bedMattress, duvet, pillow1, pillow2);
+
+        // Executive Drip Wardrobe Closet
+        const wardrobe = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.8, 0.8), this.materials.palmTrunk);
+        wardrobe.position.set(-2.2, 1.4, -1.8);
+        const handle1 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.08), this.materials.trotroYellow);
+        handle1.position.set(-2.4, 1.4, -1.38);
+        const handle2 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.08), this.materials.trotroYellow);
+        handle2.position.set(-2.0, 1.4, -1.38);
+        group.add(wardrobe, handle1, handle2);
+
         // Backyard Private Swimming Pool
         const pool = new THREE.Mesh(new THREE.BoxGeometry(3, 0.2, 2.2), this.materials.poolWater);
         pool.position.set(2, 0.1, 2.6);
@@ -1101,7 +1134,102 @@ export class WorldManager {
         this.addBackupGenerator(group, -3.6, 0, -3.6);
 
         this.environmentGroup.add(group);
-        this.attachVenueBadge('housing', 'East Legon Villa', '🏡', x, 6.2, z);
+
+        // Register interactive house hotspots
+        this.addInteractivePoint('east_legon_bed', "Kwame's Luxury Bed (Nap)", '🛏️', x + 1.5, 0.6, z - 1.8, 'bed', 'sleep');
+        this.addInteractivePoint('east_legon_pool', "Private Swimming Pool (Swim)", '🏊', x + 2.0, 0.4, z + 2.6, 'pool', 'swim');
+        this.addInteractivePoint('east_legon_wardrobe', "Executive Wardrobe (Drip)", '👗', x - 2.2, 1.0, z - 1.8, 'wardrobe', 'wardrobe');
+
+        this.attachVenueBadge('housing', "Kwame's Villa (Home)", '🏡', x, 6.2, z);
+    }
+
+    buildJamestownCompoundHouse(x, z) {
+        const group = new THREE.Group();
+        group.position.set(x, 0, z);
+
+        // Compound Base Courtyard Ground
+        const yard = new THREE.Mesh(new THREE.PlaneGeometry(8, 8), this.materials.terrainSand);
+        yard.rotation.x = -Math.PI / 2;
+        yard.position.y = 0.02;
+        group.add(yard);
+
+        // Low Stone Courtyard Perimeter Walls
+        const wallMat = this.materials.curbStone;
+        const wLeft = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.2, 8), wallMat);
+        wLeft.position.set(-4, 0.6, 0);
+        const wRight = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.2, 8), wallMat);
+        wRight.position.set(4, 0.6, 0);
+        const wBack = new THREE.Mesh(new THREE.BoxGeometry(8, 1.2, 0.25), wallMat);
+        wBack.position.set(0, 0.6, -4);
+        group.add(wLeft, wRight, wBack);
+
+        // Wooden Gate
+        const gate = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.0, 0.1), this.materials.palmTrunk);
+        gate.position.set(0, 0.5, 4);
+        group.add(gate);
+
+        // Single-Story Compound House
+        const house = new THREE.Mesh(new THREE.BoxGeometry(6.5, 2.6, 4), this.materials.sidewalkConcrete);
+        house.position.set(0, 1.3, -1.5);
+        group.add(house);
+
+        // Corrugated Red/Rusted Tin Roof
+        const roof = new THREE.Mesh(new THREE.ConeGeometry(4.8, 1.4, 4), this.materials.roofTileRed);
+        roof.rotation.y = Math.PI / 4;
+        roof.position.set(0, 3.2, -1.5);
+        group.add(roof);
+
+        // Veranda with wooden pillars
+        const vPillarGeo = new THREE.CylinderGeometry(0.08, 0.08, 2.4, 6);
+        const p1 = new THREE.Mesh(vPillarGeo, this.materials.palmTrunk);
+        p1.position.set(-2.8, 1.2, 0.8);
+        const p2 = new THREE.Mesh(vPillarGeo, this.materials.palmTrunk);
+        p2.position.set(2.8, 1.2, 0.8);
+        group.add(p1, p2);
+
+        // Veranda Awning
+        const awning = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.15, 1.8), this.materials.roofTileRed);
+        awning.position.set(0, 2.4, 0.2);
+        awning.rotation.x = 0.2;
+        group.add(awning);
+
+        // Inside Bedroom: 3D Hustler Bed
+        const bedFrame = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.35, 2.2), this.materials.palmTrunk);
+        bedFrame.position.set(0, 0.18, -1.5);
+        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.3, 2.0), this.materials.whiteMarble);
+        bedMattress.position.set(0, 0.35, -1.5);
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(1.62, 0.18, 1.3), this.materials.trotroBlue);
+        blanket.position.set(0, 0.42, -1.1);
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.12, 0.35), this.materials.whiteMarble);
+        pillow.position.set(0, 0.52, -2.2);
+        group.add(bedFrame, bedMattress, blanket, pillow);
+
+        // Courtyard: Communal Water Barrel / Basin & Tap
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.45, 1.0, 10), this.materials.sintexBlue);
+        barrel.position.set(2.4, 0.5, 2.2);
+        const basin = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.25, 0.3, 8), this.materials.whiteMarble);
+        basin.position.set(1.5, 0.15, 2.2);
+        group.add(barrel, basin);
+
+        // Clothesline with colorful Kente & shirts hanging
+        const linePost1 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.8, 6), this.materials.palmTrunk);
+        linePost1.position.set(-3.2, 0.9, 1.5);
+        const linePost2 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.8, 6), this.materials.palmTrunk);
+        linePost2.position.set(-1.0, 0.9, 1.5);
+        const lineRope = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 2.2, 4), this.materials.whiteMarble);
+        lineRope.rotation.z = Math.PI / 2;
+        lineRope.position.set(-2.1, 1.7, 1.5);
+        const cloth = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.7), this.materials.trotroYellow);
+        cloth.position.set(-2.1, 1.35, 1.5);
+        group.add(linePost1, linePost2, lineRope, cloth);
+
+        this.environmentGroup.add(group);
+
+        // Register interactive points
+        this.addInteractivePoint('jamestown_bed', "Kwame's Compound Bed (Nap)", '🛏️', x, 0.5, z - 1.5, 'bed', 'sleep');
+        this.addInteractivePoint('jamestown_basin', "Communal Water Basin (Wash)", '🪣', x + 1.5, 0.3, z + 2.2, 'basin', 'wash');
+
+        this.attachVenueBadge('jamestown_home', "Kwame's Compound (Home)", '🏘️', x, 4.8, z);
     }
 
     buildCircleInterchange(x, z) {
@@ -1355,6 +1483,49 @@ export class WorldManager {
         hitbox.userData = { type: 'venue', venueId, name, emoji, posX: x, posZ: z };
         this.environmentGroup.add(hitbox);
         this.interactables.push(hitbox);
+
+        this.interactivePoints.push({
+            id: venueId,
+            name,
+            emoji,
+            x,
+            y,
+            z,
+            subType: 'venue',
+            actionKey: venueId
+        });
+    }
+
+    addInteractivePoint(id, name, emoji, posX, posY, posZ, subType = 'feature', actionKey = null) {
+        const hitbox = new THREE.Mesh(
+            new THREE.BoxGeometry(4, 4, 4),
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hitbox.position.set(posX, posY, posZ);
+        hitbox.userData = {
+            type: 'interactive_point',
+            pointId: id,
+            name,
+            emoji,
+            posX,
+            posY,
+            posZ,
+            subType,
+            actionKey: actionKey || id
+        };
+        this.environmentGroup.add(hitbox);
+        this.interactables.push(hitbox);
+        this.interactivePoints.push({
+            id,
+            name,
+            emoji,
+            x: posX,
+            y: posY,
+            z: posZ,
+            subType,
+            actionKey: actionKey || id
+        });
+        return hitbox;
     }
 
     // --- CARS, TROTROS & PEDESTRIANS ---

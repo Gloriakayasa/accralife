@@ -274,6 +274,123 @@ export class Avatar3D {
         rightShoeMesh.position.set(0, -0.48, 0.04);
         rightShoeMesh.castShadow = true;
         rightCalf.add(rightShoeMesh);
+
+        // Build props and floating nametag
+        this.buildProps();
+        this.createNameTag();
+    }
+
+    buildProps() {
+        // 1. Waakye Leaf Parcel Prop (for 'eat' anim)
+        const waakyeGroup = new THREE.Group();
+        const leafGeo = new THREE.BoxGeometry(0.24, 0.05, 0.22);
+        const leafMat = new THREE.MeshLambertMaterial({ color: 0x15803d });
+        const leaf = new THREE.Mesh(leafGeo, leafMat);
+        waakyeGroup.add(leaf);
+        const foodGeo = new THREE.BoxGeometry(0.18, 0.06, 0.16);
+        const foodMat = new THREE.MeshLambertMaterial({ color: 0x451a03 }); // Dark waakye
+        const food = new THREE.Mesh(foodGeo, foodMat);
+        food.position.y = 0.05;
+        waakyeGroup.add(food);
+        waakyeGroup.position.set(0, -0.32, 0.14);
+        waakyeGroup.visible = false;
+        this.bones.leftForearm.add(waakyeGroup);
+        this.waakyeProp = waakyeGroup;
+
+        // 2. Boxing Gloves (for 'punch' anim)
+        const gloveGeo = new THREE.BoxGeometry(0.18, 0.2, 0.18);
+        const gloveMat = new THREE.MeshLambertMaterial({ color: 0xdc2626 });
+        const leftGlove = new THREE.Mesh(gloveGeo, gloveMat);
+        leftGlove.position.set(0, -0.28, 0);
+        leftGlove.visible = false;
+        this.bones.leftForearm.add(leftGlove);
+
+        const rightGlove = new THREE.Mesh(gloveGeo, gloveMat);
+        rightGlove.position.set(0, -0.28, 0);
+        rightGlove.visible = false;
+        this.bones.rightForearm.add(rightGlove);
+        this.boxingGloves = [leftGlove, rightGlove];
+
+        // 3. Laptop Prop (for 'type' anim)
+        const laptopGroup = new THREE.Group();
+        const lapBase = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.03, 0.28), new THREE.MeshStandardMaterial({ color: 0x94a3b8 }));
+        laptopGroup.add(lapBase);
+        const lapScreen = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.26, 0.03), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+        lapScreen.position.set(0, 0.14, -0.14);
+        lapScreen.rotation.x = -0.2;
+        laptopGroup.add(lapScreen);
+        laptopGroup.position.set(0, 0.2, 0.38);
+        laptopGroup.visible = false;
+        this.bones.torso.add(laptopGroup);
+        this.laptopProp = laptopGroup;
+
+        // 4. Soccer Ball Prop (for 'kick' anim)
+        const ballGeo = new THREE.SphereGeometry(0.18, 8, 8);
+        const ballMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 });
+        const ball = new THREE.Mesh(ballGeo, ballMat);
+        ball.position.set(0.1, -0.35, 0.35);
+        ball.visible = false;
+        this.group.add(ball);
+        this.soccerBallProp = ball;
+
+        // 5. Sleeping Zzz Sprite (for 'sleep' anim)
+        const zCanvas = document.createElement('canvas');
+        zCanvas.width = 128;
+        zCanvas.height = 128;
+        const zctx = zCanvas.getContext('2d');
+        zctx.fillStyle = '#38bdf8';
+        zctx.font = 'bold 54px sans-serif';
+        zctx.textAlign = 'center';
+        zctx.fillText('💤', 64, 70);
+        const zTex = new THREE.CanvasTexture(zCanvas);
+        const zSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: zTex, depthTest: false }));
+        zSprite.position.set(0, 2.5, 0);
+        zSprite.scale.set(0.9, 0.9, 1);
+        zSprite.visible = false;
+        this.group.add(zSprite);
+        this.sleepingZzz = zSprite;
+    }
+
+    createNameTag() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+
+        // Sleek badge background
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(8, 8, 240, 48, 24);
+        } else {
+            ctx.rect(8, 8, 240, 48);
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(`${this.config.name || 'Kwame'} 🇬🇭`, 128, 32);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMat = new THREE.SpriteMaterial({ map: texture, depthTest: false });
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.position.set(0, 2.35, 0);
+        sprite.scale.set(1.6, 0.4, 1);
+        this.group.add(sprite);
+        this.nameTagSprite = sprite;
+    }
+
+    setName(name) {
+        this.config.name = name;
+        if (this.nameTagSprite) {
+            this.group.remove(this.nameTagSprite);
+        }
+        this.createNameTag();
     }
 
     buildHair(headGroup, hairMat) {
@@ -325,66 +442,219 @@ export class Avatar3D {
         if (this.currentAnim === 'walk') {
             // Natural walking stride
             const stride = Math.sin(t * 10);
-            this.bones.leftLeg.rotation.x = stride * 0.65;
-            this.bones.rightLeg.rotation.x = -stride * 0.65;
-            this.bones.leftCalf.rotation.x = Math.max(0, -stride * 0.5);
-            this.bones.rightCalf.rotation.x = Math.max(0, stride * 0.5);
+            this.bones.leftLeg.rotation.set(stride * 0.65, 0, 0);
+            this.bones.rightLeg.rotation.set(-stride * 0.65, 0, 0);
+            this.bones.leftCalf.rotation.set(Math.max(0, -stride * 0.5), 0, 0);
+            this.bones.rightCalf.rotation.set(Math.max(0, stride * 0.5), 0, 0);
 
             // Counter arm swing
-            this.bones.leftArm.rotation.x = -stride * 0.5;
-            this.bones.rightArm.rotation.x = stride * 0.5;
-            this.bones.leftForearm.rotation.x = -0.2;
-            this.bones.rightForearm.rotation.x = -0.2;
+            this.bones.leftArm.rotation.set(-stride * 0.5, 0, 0);
+            this.bones.rightArm.rotation.set(stride * 0.5, 0, 0);
+            this.bones.leftForearm.rotation.set(-0.2, 0, 0);
+            this.bones.rightForearm.rotation.set(-0.2, 0, 0);
 
             // Hip bounce
             this.bones.hips.position.y = 1.05 + Math.abs(Math.sin(t * 10)) * 0.05;
-            this.bones.torso.rotation.y = Math.sin(t * 10) * 0.1;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+            this.bones.torso.rotation.set(0, Math.sin(t * 10) * 0.1, 0);
+            this.bones.head.rotation.set(0, 0, 0);
         } else if (this.currentAnim === 'dance_azonto') {
             // Authentic Ghanaian Azonto Dance Move:
             // Elbow flicks, synchronized knee dip, side-to-side groove
-            const beat = Math.sin(t * 8);
             const bounce = Math.abs(Math.cos(t * 8));
 
             this.bones.hips.position.y = 0.95 + bounce * 0.08;
-            this.bones.hips.rotation.z = Math.sin(t * 4) * 0.15;
+            this.bones.hips.rotation.set(0, 0, Math.sin(t * 4) * 0.15);
+            this.bones.torso.position.y = 0.15;
 
             // Azonto Elbow Flick
             this.bones.leftArm.rotation.set(0.4, 0, Math.sin(t * 8) * 0.8 + 0.4);
             this.bones.rightArm.rotation.set(0.4, 0, -Math.sin(t * 8) * 0.8 - 0.4);
-            this.bones.leftForearm.rotation.x = -1.2 + Math.cos(t * 8) * 0.3;
-            this.bones.rightForearm.rotation.x = -1.2 + Math.cos(t * 8) * 0.3;
+            this.bones.leftForearm.rotation.set(-1.2 + Math.cos(t * 8) * 0.3, 0, 0);
+            this.bones.rightForearm.rotation.set(-1.2 + Math.cos(t * 8) * 0.3, 0, 0);
 
             // Knee step
-            this.bones.leftLeg.rotation.x = Math.sin(t * 8) * 0.4;
-            this.bones.rightLeg.rotation.x = -Math.sin(t * 8) * 0.4;
-            this.bones.head.rotation.y = Math.sin(t * 4) * 0.25;
+            this.bones.leftLeg.rotation.set(Math.sin(t * 8) * 0.4, 0, 0);
+            this.bones.rightLeg.rotation.set(-Math.sin(t * 8) * 0.4, 0, 0);
+            this.bones.leftCalf.rotation.set(0, 0, 0);
+            this.bones.rightCalf.rotation.set(0, 0, 0);
+            this.bones.head.rotation.set(0, Math.sin(t * 4) * 0.25, 0);
         } else if (this.currentAnim === 'dance_kupe') {
             // Kupe / Afrobeats Slide Groove
             const groove = Math.sin(t * 6);
             this.bones.hips.position.y = 1.0 + Math.abs(groove) * 0.05;
-            this.bones.torso.rotation.x = 0.15;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+            this.bones.torso.rotation.set(0.15, 0, 0);
             this.bones.leftArm.rotation.set(-0.8, Math.sin(t * 6) * 0.5, 0.3);
             this.bones.rightArm.rotation.set(0.8, -Math.sin(t * 6) * 0.5, -0.3);
-            this.bones.leftForearm.rotation.x = -0.9;
-            this.bones.rightForearm.rotation.x = -0.9;
-            this.bones.leftLeg.rotation.z = groove * 0.2;
-            this.bones.rightLeg.rotation.z = -groove * 0.2;
+            this.bones.leftForearm.rotation.set(-0.9, 0, 0);
+            this.bones.rightForearm.rotation.set(-0.9, 0, 0);
+            this.bones.leftLeg.rotation.set(0, 0, groove * 0.2);
+            this.bones.rightLeg.rotation.set(0, 0, -groove * 0.2);
+            this.bones.leftCalf.rotation.set(0, 0, 0);
+            this.bones.rightCalf.rotation.set(0, 0, 0);
+        } else if (this.currentAnim === 'punch') {
+            // Boxing Sparring Combos (Bukom Boxing Arena)
+            const punchPhase = Math.sin(t * 12);
+            this.bones.hips.position.y = 1.05 + Math.abs(Math.sin(t * 12)) * 0.04;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+            this.bones.torso.rotation.set(0.1, punchPhase * 0.35, 0);
+
+            // Left arm jab
+            this.bones.leftArm.rotation.set(-1.1 - Math.max(0, punchPhase) * 0.8, 0.3, 0.2);
+            this.bones.leftForearm.rotation.set(-0.6 + Math.max(0, punchPhase) * 0.5, 0, 0);
+
+            // Right arm cross
+            this.bones.rightArm.rotation.set(-1.1 - Math.max(0, -punchPhase) * 0.8, -0.3, -0.2);
+            this.bones.rightForearm.rotation.set(-0.6 + Math.max(0, -punchPhase) * 0.5, 0, 0);
+
+            // Boxer shuffle footwork
+            this.bones.leftLeg.rotation.set(Math.sin(t * 12) * 0.18, 0, 0);
+            this.bones.rightLeg.rotation.set(-Math.sin(t * 12) * 0.18, 0, 0);
+            this.bones.leftCalf.rotation.set(0, 0, 0);
+            this.bones.rightCalf.rotation.set(0, 0, 0);
+            this.bones.head.rotation.set(0.1, 0, 0);
+        } else if (this.currentAnim === 'eat') {
+            // Eating steaming Waakye (Auntie Muni)
+            const chew = Math.sin(t * 7);
+            this.bones.hips.position.y = 1.05;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+            this.bones.torso.rotation.set(0.12, 0, 0);
+            this.bones.head.rotation.set(0.15 + chew * 0.08, 0, 0);
+
+            // Right arm bringing spoonful to mouth
+            this.bones.rightArm.rotation.set(-1.6 + chew * 0.22, 0.3, -0.25);
+            this.bones.rightForearm.rotation.set(-1.4 + chew * 0.25, 0, 0);
+
+            // Left arm holding parcel
+            this.bones.leftArm.rotation.set(-1.1, -0.2, 0.35);
+            this.bones.leftForearm.rotation.set(-1.2, 0, 0);
+
+            this.bones.leftLeg.rotation.set(0, 0, 0);
+            this.bones.rightLeg.rotation.set(0, 0, 0);
+            this.bones.leftCalf.rotation.set(0, 0, 0);
+            this.bones.rightCalf.rotation.set(0, 0, 0);
+        } else if (this.currentAnim === 'sleep') {
+            // Lying flat horizontally in bed (Kwame's Villa / Jamestown Compound)
+            this.bones.hips.position.y = 0.42;
+            this.bones.hips.rotation.set(-Math.PI / 2, 0, 0);
+            const breathe = Math.sin(t * 2.2) * 0.03;
+            this.bones.torso.position.y = 0.15 + breathe;
+            this.bones.torso.rotation.set(0, 0, 0);
+            this.bones.head.rotation.set(0.1, Math.sin(t * 0.6) * 0.1, 0);
+            this.bones.leftArm.rotation.set(0, 0, 0.15);
+            this.bones.rightArm.rotation.set(0, 0, -0.15);
+            this.bones.leftForearm.rotation.set(0, 0, 0);
+            this.bones.rightForearm.rotation.set(0, 0, 0);
+            this.bones.leftLeg.rotation.set(0, 0, 0.04);
+            this.bones.rightLeg.rotation.set(0, 0, -0.04);
+            this.bones.leftCalf.rotation.set(0, 0, 0);
+            this.bones.rightCalf.rotation.set(0, 0, 0);
+
+            if (this.sleepingZzz) {
+                this.sleepingZzz.position.set(0, 1.8 + Math.sin(t * 2) * 0.15, -0.4);
+            }
+        } else if (this.currentAnim === 'sit') {
+            // Sitting on bench, sunbed, or chair
+            this.bones.hips.position.y = 0.62;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+            this.bones.torso.rotation.set(0.08, 0, 0);
+            this.bones.head.rotation.set(0, Math.sin(t * 0.8) * 0.1, 0);
+
+            // 90-degree bent legs
+            this.bones.leftLeg.rotation.set(-Math.PI / 2, 0, 0);
+            this.bones.rightLeg.rotation.set(-Math.PI / 2, 0, 0);
+            this.bones.leftCalf.rotation.set(Math.PI / 2, 0, 0);
+            this.bones.rightCalf.rotation.set(Math.PI / 2, 0, 0);
+
+            // Rest arms on thighs
+            this.bones.leftArm.rotation.set(-0.6, 0, 0.2);
+            this.bones.rightArm.rotation.set(-0.6, 0, -0.2);
+            this.bones.leftForearm.rotation.set(-0.5, 0, 0);
+            this.bones.rightForearm.rotation.set(-0.5, 0, 0);
+        } else if (this.currentAnim === 'type') {
+            // Typing on glowing laptop at MEST Silicon Accra
+            const tap = Math.sin(t * 16);
+            this.bones.hips.position.y = 0.62;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+            this.bones.torso.rotation.set(0.2, 0, 0);
+            this.bones.head.rotation.set(0.3, 0, 0);
+
+            this.bones.leftLeg.rotation.set(-Math.PI / 2, 0, 0);
+            this.bones.rightLeg.rotation.set(-Math.PI / 2, 0, 0);
+            this.bones.leftCalf.rotation.set(Math.PI / 2, 0, 0);
+            this.bones.rightCalf.rotation.set(Math.PI / 2, 0, 0);
+
+            this.bones.leftArm.rotation.set(-0.9, 0.3, 0.2);
+            this.bones.rightArm.rotation.set(-0.9, -0.3, -0.2);
+            this.bones.leftForearm.rotation.set(-1.0 + tap * 0.1, 0, 0);
+            this.bones.rightForearm.rotation.set(-1.0 - tap * 0.1, 0, 0);
+        } else if (this.currentAnim === 'kick') {
+            // Kicking soccer ball at Accra Sports Stadium
+            const cycle = (t * 5) % (Math.PI * 2);
+            this.bones.hips.position.y = 1.05;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+
+            if (cycle < Math.PI) {
+                // Back swing
+                this.bones.rightLeg.rotation.set(Math.sin(cycle) * 0.8, 0, 0);
+                this.bones.rightCalf.rotation.set(Math.sin(cycle) * 0.6, 0, 0);
+                this.bones.leftLeg.rotation.set(-0.2, 0, 0);
+                this.bones.leftCalf.rotation.set(0, 0, 0);
+                this.bones.torso.rotation.set(-0.1, 0, 0);
+            } else {
+                // Forward strike
+                const strike = Math.sin(cycle - Math.PI);
+                this.bones.rightLeg.rotation.set(-strike * 1.3, 0, 0);
+                this.bones.rightCalf.rotation.set(-strike * 0.2, 0, 0);
+                this.bones.leftLeg.rotation.set(0.1, 0, 0);
+                this.bones.leftCalf.rotation.set(0, 0, 0);
+                this.bones.torso.rotation.set(0.15, 0, 0);
+            }
+
+            this.bones.leftArm.rotation.set(0.6, 0, 0.5);
+            this.bones.rightArm.rotation.set(-0.6, 0, -0.5);
+            this.bones.leftForearm.rotation.set(-0.3, 0, 0);
+            this.bones.rightForearm.rotation.set(-0.3, 0, 0);
+            this.bones.head.rotation.set(0.1, 0, 0);
         } else if (this.currentAnim === 'wave') {
             // Friendly hand wave
             this.bones.rightArm.rotation.set(-1.8, 0, 0.4);
-            this.bones.rightForearm.rotation.z = Math.sin(t * 12) * 0.5 + 0.5;
+            this.bones.rightForearm.rotation.set(0, 0, Math.sin(t * 12) * 0.5 + 0.5);
             this.bones.leftArm.rotation.set(0, 0, 0.1);
+            this.bones.leftForearm.rotation.set(0, 0, 0);
             this.bones.hips.position.y = 1.05;
+            this.bones.hips.rotation.set(0, 0, 0);
+            this.bones.torso.position.y = 0.15;
+            this.bones.torso.rotation.set(0, 0, 0);
+            this.bones.leftLeg.rotation.set(0, 0, 0);
+            this.bones.rightLeg.rotation.set(0, 0, 0);
+            this.bones.leftCalf.rotation.set(0, 0, 0);
+            this.bones.rightCalf.rotation.set(0, 0, 0);
+            this.bones.head.rotation.set(0, 0, 0);
         } else {
             // Idle breathing
             const breathe = Math.sin(t * 2.5) * 0.02;
             this.bones.torso.position.y = 0.15 + breathe;
-            this.bones.head.rotation.y = Math.sin(t * 0.8) * 0.1;
+            this.bones.torso.rotation.set(0, 0, 0);
+            this.bones.head.rotation.set(0, Math.sin(t * 0.8) * 0.1, 0);
             this.bones.leftArm.rotation.set(breathe, 0, 0.08);
             this.bones.rightArm.rotation.set(breathe, 0, -0.08);
+            this.bones.leftForearm.rotation.set(-0.1, 0, 0);
+            this.bones.rightForearm.rotation.set(-0.1, 0, 0);
             this.bones.leftLeg.rotation.set(0, 0, 0);
             this.bones.rightLeg.rotation.set(0, 0, 0);
+            this.bones.leftCalf.rotation.set(0, 0, 0);
+            this.bones.rightCalf.rotation.set(0, 0, 0);
             this.bones.hips.position.y = 1.05;
+            this.bones.hips.rotation.set(0, 0, 0);
         }
     }
 
@@ -392,6 +662,15 @@ export class Avatar3D {
         if (this.currentAnim !== anim) {
             this.currentAnim = anim;
             this.animTime = 0;
+
+            // Toggle props visibility based on animation
+            if (this.waakyeProp) this.waakyeProp.visible = (anim === 'eat');
+            if (this.boxingGloves) {
+                this.boxingGloves.forEach(g => g.visible = (anim === 'punch'));
+            }
+            if (this.laptopProp) this.laptopProp.visible = (anim === 'type');
+            if (this.soccerBallProp) this.soccerBallProp.visible = (anim === 'kick');
+            if (this.sleepingZzz) this.sleepingZzz.visible = (anim === 'sleep');
         }
     }
 

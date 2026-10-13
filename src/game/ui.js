@@ -75,6 +75,10 @@ export class UIManager {
                             👶🏾 Origin
                         </div>
 
+                        <button class="hud-home-btn" onclick="window.engine.goToHome()" title="Go to Kwame's Residence">
+                            🏡 Home
+                        </button>
+
                         <button class="hud-ad-btn" onclick="window.ui.triggerQuickAdCash()" title="Watch 6s Sponsor Video for +₵150 Cedis">
                             📺 +₵150
                         </button>
@@ -268,6 +272,9 @@ export class UIManager {
             '🇬🇭'
         );
         this.renderHUD(gameState.data);
+        if (window.engine && typeof window.engine.goToHome === 'function') {
+            window.engine.goToHome();
+        }
     }
 
     // --- 2. COMPLETE HUSTLE & CAREER HUB ---
@@ -662,12 +669,16 @@ export class UIManager {
                         </div>
 
                         ${currentHousing.weeklyRent > 0 ? `
-                        <div style="display: flex; gap: 8px; margin-top: 12px;">
-                            <button class="btn-submit" onclick="window.ui.payRent(false)">Pay 1 Week Rent (₵${currentHousing.weeklyRent})</button>
-                            <button class="btn-momo-buy" onclick="window.ui.payRent(true)">Pay 2-Year Advance (₵${currentHousing.weeklyRent * 104})</button>
+                        <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                            <button class="btn-submit" onclick="window.ui.payRent(false)">Pay 1 Wk (₵${currentHousing.weeklyRent})</button>
+                            <button class="btn-momo-buy" onclick="window.ui.payRent(true)">Pay 2-Yr Advance (₵${currentHousing.weeklyRent * 104})</button>
+                            <button class="btn-submit" onclick="document.querySelector('.modal-overlay')?.remove(); window.engine.goToHome();" style="background: linear-gradient(135deg, #059669, #10b981); font-weight: 800;">🏡 Visit My House</button>
                         </div>
                         ` : `
-                        <p style="font-size: 0.8rem; color: #34d399; margin-top: 6px;">✨ Fully furnished residence. Daddy covers all rent bills!</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; flex-wrap: wrap; gap: 8px;">
+                            <p style="font-size: 0.8rem; color: #34d399; margin: 0;">✨ Fully furnished residence. Daddy covers all rent bills!</p>
+                            <button class="btn-submit" onclick="document.querySelector('.modal-overlay')?.remove(); window.engine.goToHome();" style="background: linear-gradient(135deg, #059669, #10b981); font-weight: 800; padding: 6px 12px;">🏡 Visit My Villa</button>
+                        </div>
                         `}
                     </div>
 
@@ -1002,8 +1013,20 @@ export class UIManager {
                 loc: 'Oxford Street, Osu',
                 desc: 'The undisputed legendary Waakye joint of Accra. Hot steaming rice & beans, spicy black shito, tender wele, and fried fish.',
                 actions: [
-                    { title: 'Buy Executive Waakye Parcel', desc: '+60% Hunger, +30% Energy refill', cost: '₵35', fn: () => { gameState.feed(60, 30); gameState.spendCedis(35); window.ui.showToast('Steaming hot Waakye enjoyed on Oxford St!', '🍛'); } },
-                    { title: 'Full Special with Fried Guinea Fowl', desc: '+100% Hunger, +100% Energy full recovery', cost: '₵65', fn: () => { gameState.feed(100, 100); gameState.spendCedis(65); window.ui.showToast('Auntie Muni Special enjoyed! Fully energized.', '🍗'); } },
+                    { title: 'Buy Executive Waakye Parcel', desc: '+60% Hunger, +30% Energy refill', cost: '₵35', fn: () => {
+                        if (gameState.spendCedis(35)) {
+                            gameState.feed(60, 30);
+                            if (window.engine) window.engine.performVenueAction('auntie_muni');
+                            else window.ui.showToast('Steaming hot Waakye enjoyed on Oxford St!', '🍛');
+                        } else alert('Not enough Cedis for Waakye!');
+                    }},
+                    { title: 'Full Special with Fried Guinea Fowl', desc: '+100% Hunger, +100% Energy full recovery', cost: '₵65', fn: () => {
+                        if (gameState.spendCedis(65)) {
+                            gameState.feed(100, 100);
+                            if (window.engine) window.engine.performVenueAction('auntie_muni');
+                            else window.ui.showToast('Auntie Muni Special enjoyed! Fully energized.', '🍗');
+                        } else alert('Not enough Cedis!');
+                    }},
                     { title: 'Talk to Auntie Muni', desc: 'Campaign storyline dialogue', cost: 'Story', fn: () => { window.ui.openNpcDialogue('auntie_muni'); } }
                 ]
             },
@@ -1013,9 +1036,23 @@ export class UIManager {
                 loc: 'Osu Nightlife District',
                 desc: 'The beating heart of Accra nightlife! Open-air timber pergola, top Afrobeats DJs, and VIP energy.',
                 actions: [
-                    { title: 'Order Signature Cocktail', desc: '+50 Clout, +25% Mood boost', cost: '₵65', fn: () => { gameState.spendCedis(65); gameState.addClout(50); window.ui.showToast('Sipping chilled cocktail at Bloom Bar!', '🍸'); } },
-                    { title: 'Hit the Azonto Dancefloor', desc: 'Perform Azonto slide on stage (+35 Clout)', cost: 'Free', fn: () => { window.ui.triggerDanceMenu(); } },
-                    { title: 'Guest DJ Set with DJ Switch', desc: 'Spin 45 mins Afrobeats (+₵400 Cedis)', cost: 'Free', fn: () => { gameState.earnCedis(400); window.ui.showToast('Shut down Bloom Bar! +₵400 Cedis.', '🎧'); } },
+                    { title: 'Hit the Azonto Dancefloor', desc: 'Perform Azonto slide on stage (+35 Clout)', cost: 'Free', fn: () => {
+                        gameState.addClout(35);
+                        if (window.engine) window.engine.performVenueAction('bloom_bar');
+                        else window.ui.triggerDanceMenu();
+                    }},
+                    { title: 'Order Signature Cocktail', desc: '+50 Clout, +25% Mood boost', cost: '₵65', fn: () => {
+                        if (gameState.spendCedis(65)) {
+                            gameState.addClout(50);
+                            if (window.engine) window.engine.performVenueAction('bloom_bar');
+                            else window.ui.showToast('Sipping chilled cocktail at Bloom Bar!', '🍸');
+                        } else alert('Not enough Cedis!');
+                    }},
+                    { title: 'Guest DJ Set with DJ Switch', desc: 'Spin 45 mins Afrobeats (+₵400 Cedis)', cost: 'Free', fn: () => {
+                        gameState.earnCedis(400);
+                        if (window.engine) window.engine.performVenueAction('bloom_bar');
+                        else window.ui.showToast('Shut down Bloom Bar! +₵400 Cedis.', '🎧');
+                    }},
                     { title: 'Talk to DJ Switch', desc: 'Story mission interaction', cost: 'Story', fn: () => { window.ui.openNpcDialogue('dj_switch'); } }
                 ]
             },
@@ -1025,9 +1062,31 @@ export class UIManager {
                 loc: 'Historic Jamestown',
                 desc: 'The legendary birthplace of world boxing champions Azumah Nelson and Ike Quartey.',
                 actions: [
-                    { title: 'Train with Coach Bukom', desc: 'Intensive sparring drill (+60 Clout, +Fitness)', cost: '₵45', fn: () => { gameState.spendCedis(45); gameState.addClout(60); window.ui.showToast('Coach Bukom sharpened your jabs!', '🥊'); } },
-                    { title: 'Spar The Bulldozer', desc: 'Survive 3 rounds in the ring (+₵350 Cedis)', cost: '-20 Energy', fn: () => { if (gameState.useEnergy(20)) { gameState.earnCedis(350); window.ui.showToast('Defeated The Bulldozer! +₵350 Cedis.', '💪'); } } },
-                    { title: 'Place Boxing Bet', desc: 'Bet on upcoming Bukom title match', cost: '₵100', fn: () => { if (gameState.spendCedis(100)) { const win = Math.random() < 0.6; if (win) { gameState.earnCedis(220); window.ui.showToast('Your boxer won! Collected +₵220 Cedis.', '🏆'); } else { window.ui.showToast('Your fighter lost by split decision.', '🥊'); } } } }
+                    { title: 'Train with Coach Bukom', desc: 'Intensive sparring drill (+60 Clout, +Fitness)', cost: '₵45', fn: () => {
+                        if (gameState.spendCedis(45)) {
+                            gameState.addClout(60);
+                            if (window.engine) window.engine.performVenueAction('bukom_boxing');
+                            else window.ui.showToast('Coach Bukom sharpened your jabs!', '🥊');
+                        } else alert('Not enough Cedis!');
+                    }},
+                    { title: 'Spar The Bulldozer', desc: 'Survive 3 rounds in the ring (+₵350 Cedis)', cost: '-20 Energy', fn: () => {
+                        if (gameState.useEnergy(20)) {
+                            gameState.earnCedis(350);
+                            if (window.engine) window.engine.performVenueAction('bukom_boxing');
+                            else window.ui.showToast('Defeated The Bulldozer! +₵350 Cedis.', '💪');
+                        } else alert('Not enough energy to spar!');
+                    }},
+                    { title: 'Place Boxing Bet', desc: 'Bet on upcoming Bukom title match', cost: '₵100', fn: () => {
+                        if (gameState.spendCedis(100)) {
+                            const win = Math.random() < 0.6;
+                            if (win) {
+                                gameState.earnCedis(220);
+                                window.ui.showToast('Your boxer won! Collected +₵220 Cedis.', '🏆');
+                            } else {
+                                window.ui.showToast('Your fighter lost by split decision.', '🥊');
+                            }
+                        } else alert('Not enough Cedis!');
+                    }}
                 ]
             },
             mest_tech: {
@@ -1036,9 +1095,19 @@ export class UIManager {
                 loc: 'East Legon Tech Corridor',
                 desc: 'West Africa premier tech incubator. FinTech unicorns, venture capital, and ChalePay founders.',
                 actions: [
-                    { title: 'Junior FinTech Coder Shift', desc: 'Code Mobile Money smart contracts (+₵450 Cedis)', cost: '-15 Energy', fn: () => { if (gameState.useEnergy(15)) { gameState.earnCedis(450); window.ui.showToast('Merged ChalePay PR! +₵450 Cedis.', '💻'); } } },
-                    { title: 'Pitch Startup to Dr. Kobby', desc: 'Pitch pitch deck to angel investors', cost: 'Story', fn: () => { window.ui.openNpcDialogue('dr_kobby'); } },
-                    { title: 'MoMo Crypto Remittance Gig', desc: 'Execute P2P transfers (+₵250 Cedis)', cost: 'Free', fn: () => { gameState.earnCedis(250); window.ui.showToast('MoMo Remittance settled! +₵250 Cedis.', '🪙'); } }
+                    { title: 'Junior FinTech Coder Shift', desc: 'Code Mobile Money smart contracts (+₵450 Cedis)', cost: '-15 Energy', fn: () => {
+                        if (gameState.useEnergy(15)) {
+                            gameState.earnCedis(450);
+                            if (window.engine) window.engine.performVenueAction('mest_tech');
+                            else window.ui.showToast('Merged ChalePay PR! +₵450 Cedis.', '💻');
+                        } else alert('Not enough energy!');
+                    }},
+                    { title: 'MoMo Crypto Remittance Gig', desc: 'Execute P2P transfers (+₵250 Cedis)', cost: 'Free', fn: () => {
+                        gameState.earnCedis(250);
+                        if (window.engine) window.engine.performVenueAction('mest_tech');
+                        else window.ui.showToast('MoMo Remittance settled! +₵250 Cedis.', '🪙');
+                    }},
+                    { title: 'Pitch Startup to Dr. Kobby', desc: 'Pitch pitch deck to angel investors', cost: 'Story', fn: () => { window.ui.openNpcDialogue('dr_kobby'); } }
                 ]
             },
             circle_trotro: {
@@ -1048,7 +1117,11 @@ export class UIManager {
                 desc: 'The central nerve center of Accra transit. Thousands of Trotros embarking across Ghana.',
                 actions: [
                     { title: 'Open Trotro Empire Dashboard', desc: 'Manage your commercial fleet & routes', cost: 'Manage', fn: () => { window.ui.openTrotroEmpireModal(); } },
-                    { title: 'Work Shift as Trotro Mate', desc: 'Shout "Accra! Kaneshie! Lapaz!" (+₵150 Cedis)', cost: 'Free', fn: () => { gameState.earnCedis(150); window.ui.showToast('Filled 3 buses at Circle! +₵150 Cedis.', '🚌'); } }
+                    { title: 'Work Shift as Trotro Mate', desc: 'Hop onto Trotro: "Circle! Kaneshie! Lapaz!" (+₵150 Cedis)', cost: 'Free', fn: () => {
+                        gameState.earnCedis(150);
+                        if (window.engine) window.engine.performVenueAction('circle_trotro');
+                        else window.ui.showToast('Filled 3 buses at Circle! +₵150 Cedis.', '🚌');
+                    }}
                 ]
             },
             city_hall: {
@@ -1066,20 +1139,29 @@ export class UIManager {
                 loc: 'Atlantic Coastline',
                 desc: 'Accra most vibrant public beach. Horseback riding, reggae nights, grilled seafood, and waves.',
                 actions: [
-                    { title: 'Chop Grilled Tilapia & Banku', desc: '+80% Hunger, +40% Energy', cost: '₵45', fn: () => { gameState.feed(80, 40); gameState.spendCedis(45); window.ui.showToast('Hot grilled tilapia enjoyed with sea breeze!', '🐟'); } },
-                    { title: 'Fresh Coconut on Beach', desc: '+40% Energy hydration', cost: '₵15', fn: () => { gameState.refillEnergy(40); gameState.spendCedis(15); window.ui.showToast('Sweet fresh coconut water enjoyed!', '🥥'); } },
-                    { title: 'Host VIP Beach Cabana Party', desc: 'Detty December celebration (+600 Clout, +₵700 Cedis)', cost: '-25 Energy', fn: () => { if (gameState.useEnergy(25)) { gameState.earnCedis(700); gameState.addClout(600); window.ui.showToast('Shut down Labadi Beach rave! +₵700 Cedis.', '🎉'); } } },
+                    { title: 'Fresh Coconut on Sunbed', desc: '+40% Energy hydration', cost: '₵15', fn: () => {
+                        if (gameState.spendCedis(15)) {
+                            gameState.refillEnergy(40);
+                            if (window.engine) window.engine.performVenueAction('labadi_beach');
+                            else window.ui.showToast('Sweet fresh coconut water enjoyed!', '🥥');
+                        } else alert('Not enough Cedis!');
+                    }},
+                    { title: 'Chop Grilled Tilapia & Banku', desc: '+80% Hunger, +40% Energy', cost: '₵45', fn: () => {
+                        if (gameState.spendCedis(45)) {
+                            gameState.feed(80, 40);
+                            if (window.engine) window.engine.performVenueAction('labadi_beach');
+                            else window.ui.showToast('Hot grilled tilapia enjoyed with sea breeze!', '🐟');
+                        } else alert('Not enough Cedis!');
+                    }},
+                    { title: 'Host VIP Beach Cabana Party', desc: 'Detty December celebration (+600 Clout, +₵700 Cedis)', cost: '-25 Energy', fn: () => {
+                        if (gameState.useEnergy(25)) {
+                            gameState.earnCedis(700);
+                            gameState.addClout(600);
+                            if (window.engine) window.engine.performVenueAction('labadi_beach');
+                            else window.ui.showToast('Shut down Labadi Beach rave! +₵700 Cedis.', '🎉');
+                        } else alert('Not enough Energy!');
+                    }},
                     { title: 'Meet Influencer Serwaa', desc: 'Story campaign dialogue', cost: 'Story', fn: () => { window.ui.openNpcDialogue('serwaa'); } }
-                ]
-            },
-            makola_market: {
-                title: 'Makola Market & Kantamanto',
-                emoji: '🛒',
-                loc: 'Central Accra Bazaar',
-                desc: 'West Africa largest trading market. Fabrics, electronics, wholesale goods, and thrift drip.',
-                actions: [
-                    { title: 'Wholesale Commerce Hustle', desc: 'Buy goods wholesale and resell (+₵300 Cedis)', cost: '₵80', fn: () => { if (gameState.spendCedis(80)) { gameState.earnCedis(380); window.ui.showToast('Profitable day at Makola! +₵300 Cedis net.', '🛍️'); } } },
-                    { title: 'Kantamanto Drip Hunt', desc: 'Search vintage streetwear racks (+40 Clout)', cost: '₵50', fn: () => { if (gameState.spendCedis(50)) { gameState.addClout(40); window.ui.showToast('Found rare vintage drip at Kantamanto!', '🧢'); } } }
                 ]
             },
             stadium: {
@@ -1088,8 +1170,62 @@ export class UIManager {
                 loc: 'Osu / Ministries',
                 desc: 'National stadium and athletic complex. Home of the Black Stars and Hearts of Oak.',
                 actions: [
-                    { title: 'Derby Match VIP Ticket', desc: 'Watch Hearts of Oak vs Kotoko (+100 Clout)', cost: '₵60', fn: () => { gameState.spendCedis(60); gameState.addClout(100); window.ui.showToast('Epic 2-1 win at Accra Sports Stadium! 🇬🇭', '⚽'); } },
-                    { title: 'Stadium Fitness Workout', desc: '100% Full Energy conditioning', cost: '₵25', fn: () => { gameState.spendCedis(25); gameState.refillEnergy(100); window.ui.showToast('Full stamina restored!', '💪'); } }
+                    { title: 'Kick Football on Pitch', desc: 'Score a goal & athletic workout (+80 Clout)', cost: 'Free', fn: () => {
+                        gameState.addClout(80);
+                        if (window.engine) window.engine.performVenueAction('stadium');
+                        else window.ui.showToast('GOOOAL! Scored at Accra Stadium! ⚽', '🇬🇭');
+                    }},
+                    { title: 'Derby Match VIP Ticket', desc: 'Watch Hearts of Oak vs Kotoko (+100 Clout)', cost: '₵60', fn: () => {
+                        if (gameState.spendCedis(60)) {
+                            gameState.addClout(100);
+                            if (window.engine) window.engine.performVenueAction('stadium');
+                            else window.ui.showToast('Epic 2-1 win at Accra Sports Stadium! 🇬🇭', '⚽');
+                        } else alert('Not enough Cedis!');
+                    }},
+                    { title: 'Stadium Fitness Workout', desc: '100% Full Energy conditioning', cost: '₵25', fn: () => {
+                        if (gameState.spendCedis(25)) {
+                            gameState.refillEnergy(100);
+                            if (window.engine) window.engine.performVenueAction('stadium');
+                            else window.ui.showToast('Full stamina restored!', '💪');
+                        } else alert('Not enough Cedis!');
+                    }}
+                ]
+            },
+            housing: {
+                title: "Kwame's East Legon Executive Villa",
+                emoji: '🏡',
+                loc: 'East Legon Residential Zone',
+                desc: 'Your private executive villa with luxury King bed, swimming pool, standby generator, and G-Wagon in the driveway.',
+                actions: [
+                    { title: 'Rest in King Bed (Sleep)', desc: 'Full 100% Energy restore & night rest', cost: 'Rest', fn: () => {
+                        if (window.engine) window.engine.interactWithPoint({ subType: 'bed' });
+                    }},
+                    { title: 'Swim in Private Pool', desc: '+35% Energy refreshment', cost: 'Swim', fn: () => {
+                        if (window.engine) window.engine.interactWithPoint({ subType: 'pool' });
+                    }},
+                    { title: 'Change Wardrobe Drip', desc: 'Open Ghanaian fashion closet', cost: 'Wardrobe', fn: () => {
+                        window.ui.openWardrobeModal();
+                    }},
+                    { title: 'Manage Housing Market', desc: 'View rent, apartments & land plots', cost: 'Housing', fn: () => {
+                        window.ui.openHousingModal();
+                    }}
+                ]
+            },
+            jamestown_home: {
+                title: "Kwame's Jamestown Compound House",
+                emoji: '🏘️',
+                loc: 'Historic Jamestown Heritage Quarter',
+                desc: 'Your traditional British Accra compound home. Courtyard clothesline, communal water barrel, and cozy bedroom.',
+                actions: [
+                    { title: 'Rest in Hustler Bed (Sleep)', desc: 'Full 100% Energy restore', cost: 'Rest', fn: () => {
+                        if (window.engine) window.engine.interactWithPoint({ subType: 'bed' });
+                    }},
+                    { title: 'Wash at Communal Basin', desc: '+30% Energy refresh & clean up', cost: 'Wash', fn: () => {
+                        if (window.engine) window.engine.interactWithPoint({ subType: 'basin' });
+                    }},
+                    { title: 'Manage Rent & Landlord', desc: 'Pay rent advance to Landlord Agya Koo', cost: 'Housing', fn: () => {
+                        window.ui.openHousingModal();
+                    }}
                 ]
             },
             kempinski: {
@@ -1098,7 +1234,13 @@ export class UIManager {
                 loc: 'Ministries / Ridge',
                 desc: 'Five-star luxury oasis in Accra. Diplomats, CEOs, and elite cocktail lounges.',
                 actions: [
-                    { title: 'Executive Suite Day Pass', desc: 'Restore 100% Energy, +400 Clout', cost: '₵600', fn: () => { if (gameState.spendCedis(600)) { gameState.refillEnergy(100); gameState.addClout(400); window.ui.showToast('Luxurious relaxation at Kempinski.', '🥂'); } else { alert('Not enough Cedis for 5-star Kempinski luxury!'); } } }
+                    { title: 'Executive Suite Day Pass', desc: 'Restore 100% Energy, +400 Clout', cost: '₵600', fn: () => {
+                        if (gameState.spendCedis(600)) {
+                            gameState.refillEnergy(100);
+                            gameState.addClout(400);
+                            window.ui.showToast('Luxurious relaxation at Kempinski.', '🥂');
+                        } else alert('Not enough Cedis for 5-star Kempinski luxury!');
+                    }}
                 ]
             },
             high_court: {
@@ -1107,7 +1249,11 @@ export class UIManager {
                 loc: 'High Street Judicial Quarter',
                 desc: 'Superior Court of Judicature. Resolution of Ga land disputes and traditional council rulings.',
                 actions: [
-                    { title: 'Ga Council Title Registration', desc: 'Clear land title rights (+150 Clout)', cost: '₵120', fn: () => { gameState.spendCedis(120); gameState.addClout(150); window.ui.showToast('Land registry stamped by Ga Council.', '📜'); } }
+                    { title: 'Ga Council Title Registration', desc: 'Clear land title rights (+150 Clout)', cost: '₵120', fn: () => {
+                        gameState.spendCedis(120);
+                        gameState.addClout(150);
+                        window.ui.showToast('Land registry stamped by Ga Council.', '📜');
+                    }}
                 ]
             },
             salon: {
@@ -1116,7 +1262,7 @@ export class UIManager {
                 loc: 'Oxford Street, Osu',
                 desc: 'Top beauty parlor & barbershop. Fresh fades, box braids, lace wigs, and city gossip.',
                 actions: [
-                    { title: 'Open Wardrobe & Hairstyle Shop', desc: 'Customize your African drip & hair', cost: 'Style', fn: () => { window.ui.openWardrobe(); } }
+                    { title: 'Open Wardrobe & Hairstyle Shop', desc: 'Customize your African drip & hair', cost: 'Style', fn: () => { window.ui.openWardrobeModal(); } }
                 ]
             },
             papaye: {
@@ -1125,7 +1271,31 @@ export class UIManager {
                 loc: 'Osu Oxford Street',
                 desc: 'Accra favorite roast chicken, fried rice, and chips since 1991.',
                 actions: [
-                    { title: 'Roasted Chicken & Jollof Meal', desc: '+70% Hunger, +30% Energy', cost: '₵40', fn: () => { gameState.feed(70, 30); gameState.spendCedis(40); window.ui.showToast('Delicious Papaye jollof enjoyed!', '🍗'); } }
+                    { title: 'Roasted Chicken & Jollof Meal', desc: '+70% Hunger, +30% Energy', cost: '₵40', fn: () => {
+                        gameState.feed(70, 30);
+                        gameState.spendCedis(40);
+                        window.ui.showToast('Delicious Papaye jollof enjoyed!', '🍗');
+                    }}
+                ]
+            },
+            makola_market: {
+                title: 'Makola Market & Kantamanto',
+                emoji: '🛒',
+                loc: 'Central Accra Bazaar',
+                desc: 'West Africa largest trading market. Fabrics, electronics, wholesale goods, and thrift drip.',
+                actions: [
+                    { title: 'Wholesale Commerce Hustle', desc: 'Buy goods wholesale and resell (+₵300 Cedis)', cost: '₵80', fn: () => {
+                        if (gameState.spendCedis(80)) {
+                            gameState.earnCedis(380);
+                            window.ui.showToast('Profitable day at Makola! +₵300 Cedis net.', '🛍️');
+                        } else alert('Not enough Cedis!');
+                    }},
+                    { title: 'Kantamanto Drip Hunt', desc: 'Search vintage streetwear racks (+40 Clout)', cost: '₵50', fn: () => {
+                        if (gameState.spendCedis(50)) {
+                            gameState.addClout(40);
+                            window.ui.showToast('Found rare vintage drip at Kantamanto!', '🧢');
+                        } else alert('Not enough Cedis!');
+                    }}
                 ]
             },
             sea_plots: {
@@ -1140,9 +1310,10 @@ export class UIManager {
         };
 
         const v = venues[venueId] || venues.auntie_muni;
+        this._activeVenueActions = v.actions;
 
-        const actionButtons = v.actions.map(a => `
-            <button class="venue-action-btn" onclick="document.querySelector('.modal-overlay')?.remove(); (${a.fn.toString()})()">
+        const actionButtons = v.actions.map((a, idx) => `
+            <button class="venue-action-btn" onclick="window.ui.triggerVenueAction(${idx})">
                 <div class="venue-action-title">${a.title}</div>
                 <div class="venue-action-desc">${a.desc}</div>
                 <div class="venue-action-cost">${a.cost}</div>
@@ -1176,12 +1347,21 @@ export class UIManager {
         `;
     }
 
+    triggerVenueAction(idx) {
+        document.querySelector('.modal-overlay')?.remove();
+        if (this._activeVenueActions && this._activeVenueActions[idx]) {
+            this._activeVenueActions[idx].fn();
+        }
+    }
+
     openVenuesModal() {
         audio.playTap();
         const root = document.getElementById('modals-root');
         if (!root) return;
 
         const venuesList = [
+            { id: 'housing', name: "Kwame's East Legon Villa", emoji: '🏡', desc: 'Executive Residence & Pool' },
+            { id: 'jamestown_home', name: "Kwame's Jamestown Compound", emoji: '🏘️', desc: 'Hustler Heritage Home' },
             { id: 'auntie_muni', name: 'Auntie Muni Waakye', emoji: '🍛', desc: 'Osu Oxford Street' },
             { id: 'bloom_bar', name: 'Bloom Bar', emoji: '🪩', desc: 'Osu Nightlife Rooftop' },
             { id: 'bukom_boxing', name: 'Bukom Boxing Arena', emoji: '🥊', desc: 'Jamestown Heritage' },
@@ -1353,6 +1533,10 @@ export class UIManager {
     }
 
     openWardrobe() {
+        this.openWardrobeModal();
+    }
+
+    openWardrobeModal() {
         audio.playTap();
         const root = document.getElementById('modals-root');
         root.innerHTML = `
@@ -1389,6 +1573,9 @@ export class UIManager {
         audio.playTap();
         gameState.data.avatar.outfit = outfit;
         gameState.save();
+        if (window.engine && window.engine.player) {
+            window.engine.player.updateConfig(gameState.data.avatar);
+        }
         this.showToast(`Changed outfit to ${outfit}!`, '👗');
     }
 
@@ -1396,6 +1583,9 @@ export class UIManager {
         audio.playTap();
         gameState.data.avatar.hairStyle = hairStyle;
         gameState.save();
+        if (window.engine && window.engine.player) {
+            window.engine.player.updateConfig(gameState.data.avatar);
+        }
         this.showToast(`Changed hairstyle to ${hairStyle}!`, '✂️');
     }
 

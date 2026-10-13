@@ -1386,4 +1386,131 @@ html, body {
     border-radius: 8px;
 }
 
+/* HUD Home Button */
+.hud-home-btn {
+    background: linear-gradient(135deg, #059669, #10b981);
+    color: #ffffff;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.82rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transition: transform 0.15s, box-shadow 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.hud-home-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.45);
+}
+
+/* Floating Proximity Interaction Prompt */
+#interaction-prompt {
+    position: fixed;
+    bottom: 84px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1.5px solid #38bdf8;
+    backdrop-filter: blur(12px);
+    border-radius: 30px;
+    padding: 8px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 16px rgba(56, 189, 248, 0.35);
+    cursor: pointer;
+    transition: opacity 0.25s, transform 0.25s;
+    user-select: none;
+}
+
+#interaction-prompt.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(16px);
+}
+
+.prompt-badge {
+    background: #38bdf8;
+    color: #0f172a;
+    font-weight: 900;
+    font-size: 0.72rem;
+    padding: 3px 8px;
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+}
+
+.prompt-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.prompt-emoji {
+    font-size: 1.3rem;
+}
+
+.prompt-text {
+    font-size: 0.88rem;
+    color: #f8fafc;
+    font-weight: 500;
+}
+
+.prompt-text strong {
+    color: #fbbf24;
+}
+
+/* Virtual Touch Joystick (Mobile & Touch Devices) */
+#virtual-joystick {
+    position: fixed;
+    bottom: 96px;
+    left: 24px;
+    z-index: 95;
+    width: 110px;
+    height: 110px;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+#joystick-base {
+    width: 110px;
+    height: 110px;
+    background: radial-gradient(circle, rgba(30, 41, 59, 0.75) 0%, rgba(15, 23, 42, 0.5) 100%);
+    border: 2px solid rgba(56, 189, 248, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+#joystick-thumb {
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #38bdf8, #0284c7);
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    position: absolute;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.6);
+    pointer-events: none;
+    transition: transform 0.05s ease-out;
+}
+
+@media (min-width: 1024px) {
+    /* Subtle touch joystick on desktop */
+    #virtual-joystick {
+        opacity: 0.45;
+        transition: opacity 0.2s;
+    }
+    #virtual-joystick:hover {
+        opacity: 1;
+    }
+}
+
 
