@@ -15,9 +15,12 @@
       "vite.config.ts",
       "package.json",
       "package-lock.json",
+      "test_*.mjs",
       "debug_browser.mjs",
-      "test_emulator.mjs",
       "render_icon.mjs",
+      "accralife_3d_*.png",
+      "test_*.png",
+      "touch_*.png",
       "*.py"
     ],
     "headers": [
