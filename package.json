@@ -8,10 +8,21 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "keywords": ["accra", "alvyd", "simulation", "typescript", "retro", "pixel-art"],
+  "keywords": [
+    "accra",
+    "alvyd",
+    "simulation",
+    "typescript",
+    "retro",
+    "pixel-art"
+  ],
   "type": "module",
   "devDependencies": {
+    "puppeteer": "^25.13.0",
     "typescript": "^5.0.0",
     "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
   }
 }

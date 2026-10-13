@@ -4,9 +4,12 @@ dist/
 .DS_Store
 debug_browser.mjs
 test_emulator.mjs
+test_accralife_3d.mjs
+test_touch_and_features.mjs
 render_icon.mjs
-canvas_*.png
-screen_*.png
+*.png
+!icon.png
+!icon_32.png
 .firebase/
 __pycache__/
 *.pyc

@@ -3,713 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Accra Life - Alvyd Retro Mobile Simulator</title>
+    <title>Accra Life 3D - The Sims of Ghana</title>
+    <meta name="description" content="Experience Accra's vibrant city life! Explore Osu Bloom Bar, East Legon, Labadi Beach, customize royal Kente drip, hustle gigs, and party in full 3D.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="icon" type="image/png" sizes="512x512" href="icon.png">
-    <link rel="apple-touch-icon" href="icon.png">
-    <!-- Google AdSense for Games -->
+    <link rel="stylesheet" href="src/game/style.css">
+
+    <!-- Google AdSense H5 Games Integration (pub-3985878289597879) -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3985878289597879" crossorigin="anonymous"></script>
+
+    <!-- Paystack Mobile Money & Card Checkout -->
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #0b0d13;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #f1f5f9;
-        }
-
-        /* Top control bar */
-        #top-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 44px;
-            background: rgba(15, 23, 42, 0.92);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 12px;
-            z-index: 100;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .bar-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 800;
-            font-size: 1.05rem;
-            color: #f8fafc;
-            letter-spacing: 0.5px;
-        }
-
-        .bar-title img {
-            width: 26px;
-            height: 26px;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        }
-
-        .game-title-text {
-            background: linear-gradient(135deg, #ffffff 30%, #fef08a 70%, #f59e0b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-            letter-spacing: 0.3px;
-        }
-
-        .bar-buttons {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .bar-btn {
-            background: rgba(30, 41, 59, 0.8);
-            color: #cbd5e1;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .bar-btn:hover {
-            background: #334155;
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.25);
-        }
-
-        .bar-btn.btn-momo {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: #ffffff;
-            border: none;
-            box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4);
-        }
-
-        .bar-btn.btn-momo:hover {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-        }
-
-        .bar-btn.btn-ad {
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            border-color: rgba(16, 185, 129, 0.4);
-        }
-
-        .bar-btn.btn-ad:hover {
-            background: rgba(16, 185, 129, 0.35);
-            color: #ffffff;
-        }
-
-        /* Screen Area */
-        #screen-area {
-            background: radial-gradient(circle at center, #131824 0%, #07090e 100%);
-            position: absolute;
-            top: 44px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        /* Authentic Smooth High-Definition Canvas (NO PIXELATED / JAGGED BLOCKS) */
-        #display {
-            background-color: black;
-            zoom: 1;
-            image-rendering: auto;
-            image-rendering: -webkit-optimize-contrast;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            touch-action: none;
-        }
-
-        #display:focus {
-            outline: none;
-        }
-
-        #loading {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0b0d13;
-            z-index: 50;
-        }
-
-        #loading[hidden], #loading.hidden {
-            display: none !important;
-        }
-
-        .loading-box {
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 36px 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(2, 132, 199, 0.15);
-            max-width: 320px;
-            width: 85%;
-            text-align: center;
-        }
-
-        .spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(255, 255, 255, 0.08);
-            border-top-color: #f59e0b;
-            border-right-color: #38bdf8;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 16px;
-        }
-
-        .loading-title {
-            font-size: 1.3rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-            background: linear-gradient(135deg, #ffffff 20%, #fef08a 70%, #f59e0b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .loading-status {
-            font-size: 0.88rem;
-            color: #94a3b8;
-            font-weight: 600;
-        }
-
-        .loading-sub {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-top: 6px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Modern Floating Touch HUD (Buttonless / Clean) */
-        #touch-hud {
-            position: absolute;
-            bottom: 16px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 80;
-            pointer-events: auto;
-        }
-
-        .touch-hud-btn {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            color: #f1f5f9;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            padding: 8px 14px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
-            transition: all 0.12s ease;
-            touch-action: manipulation;
-        }
-
-        .touch-hud-btn:active {
-            transform: scale(0.92);
-            background: rgba(2, 132, 199, 0.5);
-            border-color: #38bdf8;
-        }
-
-        .touch-hud-btn.action-primary {
-            background: rgba(2, 132, 199, 0.85);
-            border-color: #38bdf8;
-            color: #ffffff;
-            box-shadow: 0 4px 16px rgba(2, 132, 199, 0.5);
-        }
-
-        /* Completely Hide the Retro Virtual Buttons */
-        .keypad-part, #left-keys, #right-keys {
-            display: none !important;
-        }
-
-        /* Generic Modal Base */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 16px;
-        }
-
-        .modal-overlay.open {
-            display: flex !important;
-        }
-
-        .modal-card {
-            background: #151922;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px;
-            width: 100%;
-            max-width: 440px;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-            color: #f1f5f9;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: 12px;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1.15rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .modal-close-btn {
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            font-size: 1.3rem;
-            cursor: pointer;
-            padding: 4px;
-            line-height: 1;
-        }
-
-        .modal-close-btn:hover {
-            color: #ffffff;
-        }
-
-        /* Form Controls */
-        .form-group {
+        /* Auth Modal Specific Styling */
+        .auth-form-group {
             margin-bottom: 14px;
         }
-
-        .form-group label {
+        .auth-form-group label {
             display: block;
             font-size: 0.8rem;
-            font-weight: 600;
             color: #94a3b8;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
+            font-weight: 600;
         }
-
-        .form-control {
+        .auth-input {
             width: 100%;
-            background: #0d1017;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 8px;
-            padding: 10px 12px;
-            color: #ffffff;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
             font-size: 0.9rem;
             outline: none;
-            transition: border-color 0.15s ease;
         }
-
-        .form-control:focus {
+        .auth-input:focus {
             border-color: #38bdf8;
         }
-
-        .btn-submit {
-            width: 100%;
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 6px;
-            transition: all 0.15s ease;
-        }
-
-        .btn-submit:hover {
-            background: linear-gradient(135deg, #0369a1, #0284c7);
-        }
-
         .auth-tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding-bottom: 8px;
+            background: rgba(15, 23, 42, 0.5);
+            padding: 4px;
+            border-radius: 12px;
         }
-
         .auth-tab-btn {
             flex: 1;
             background: transparent;
             border: none;
             color: #94a3b8;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 6px;
+            padding: 8px;
+            font-weight: 700;
+            border-radius: 8px;
             cursor: pointer;
-            border-radius: 6px;
         }
-
         .auth-tab-btn.active {
-            background: #1e293b;
-            color: #38bdf8;
+            background: #0284c7;
+            color: #fff;
         }
-
         .auth-message {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             margin-top: 10px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            display: none;
-        }
-        .auth-message.error {
-            display: block;
-            background: rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.4);
-        }
-        .auth-message.success {
-            display: block;
-            background: rgba(16, 185, 129, 0.2);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.4);
-        }
-
-        /* MoMo Packages */
-        .momo-packages {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .momo-card {
-            background: #0d1017;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            position: relative;
-        }
-
-        .momo-card:hover {
-            border-color: #f59e0b;
-            transform: translateY(-2px);
-            background: #141822;
-        }
-
-        .momo-badge {
-            position: absolute;
-            top: -8px;
-            right: 8px;
-            background: #f59e0b;
-            color: #000;
-            font-size: 0.65rem;
-            font-weight: 800;
-            padding: 2px 6px;
-            border-radius: 4px;
-            text-transform: uppercase;
-        }
-
-        .momo-title {
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: #f1f5f9;
-        }
-
-        .momo-reward {
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #38bdf8;
-            margin: 6px 0;
-        }
-
-        .momo-price {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #f59e0b;
-            background: rgba(245, 158, 11, 0.12);
-            padding: 4px 8px;
-            border-radius: 6px;
             text-align: center;
         }
-
-        .momo-provider-badges {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            font-size: 0.72rem;
-            color: #94a3b8;
-            margin-top: 10px;
-        }
-
-        /* Help Table */
-        .control-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            margin-top: 10px;
-        }
-
-        .control-table td {
-            padding: 8px 6px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-
-        kbd {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 4px;
-            padding: 2px 6px;
-            font-family: monospace;
-            font-size: 0.8rem;
-        }
+        .auth-message.success { color: #34d399; }
+        .auth-message.error { color: #f87171; }
     </style>
 </head>
 <body>
-    <header id="top-bar">
-        <div class="bar-title">
-            <img src="icon.png" alt="Accra Life" onerror="this.style.display='none'">
-            <span class="game-title-text">Accra Life</span>
-        </div>
-        <div class="bar-buttons">
-            <button class="bar-btn btn-momo" onclick="window.openMoMoModal()" title="Buy Cedis with MoMo">💰 MoMo Shop</button>
-            <button class="bar-btn btn-ad" onclick="window.triggerRewardedAd()" title="Watch Ad for Free Cedis">📺 +50 GH₵</button>
-            <button id="account-btn" class="bar-btn" onclick="window.openAuthModal()" title="Account & Cloud Save">👤 Account</button>
-            <button class="bar-btn" onclick="document.getElementById('help-modal').classList.add('open')" title="Help & Controls">❓</button>
-            <button class="bar-btn" onclick="window.toggleFullscreen()" title="Fullscreen">⛶</button>
-        </div>
-    </header>
+    <!-- 3D Hardware Accelerated WebGL Canvas -->
+    <canvas id="game-canvas"></canvas>
 
-    <div id="screen-area">
-        <canvas tabindex="0" id="display" style="display: none;"></canvas>
-        <div id="loading">
-            <div class="loading-box">
-                <div class="spinner"></div>
-                <div class="loading-title">Accra Life</div>
-                <div id="loading-status" class="loading-status">Starting Accra Life...</div>
-                <div class="loading-sub">Experience Accra's vibrant city life</div>
-            </div>
-        </div>
-    </div>
+    <!-- Glassmorphic Game HUD (Generated dynamically by UIManager) -->
+    <div id="game-hud"></div>
 
-    <!-- Buttonless Floating Touch Controls for Mobile/Touchscreens -->
-    <div id="touch-hud">
-        <button class="touch-hud-btn action-primary" onclick="window.tapGameKey('Enter')" aria-label="Action">
-            <span>💬</span> Action
-        </button>
-        <button class="touch-hud-btn" onclick="window.tapGameKey('Digit0')" aria-label="Phone">
-            <span>📱</span> Phone
-        </button>
-        <button class="touch-hud-btn" onclick="window.tapGameKey('F1')" aria-label="Menu">
-            <span>📋</span> Menu
-        </button>
-        <button class="touch-hud-btn" onclick="window.tapGameKey('F2')" aria-label="Back">
-            <span>↩</span> Back
-        </button>
-    </div>
+    <!-- Interactive In-Game Rewarded Video Ad Player Modal -->
+    <div id="ad-player-modal" class="modal-overlay">
+        <div class="modal-card" style="text-align: center; max-width: 420px;">
+            <div style="font-size: 2rem; margin-bottom: 6px;">🎬</div>
+            <h3 id="ad-player-title">📺 Sponsored Video Offer</h3>
+            <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 4px;">Watch this short video to claim your in-game reward!</p>
 
-    <!-- Controls Helper Modal -->
-    <div id="help-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('open')">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>🎮 Touch & Controls Guide</h3>
-                <button class="modal-close-btn" onclick="document.getElementById('help-modal').classList.remove('open')">✕</button>
+            <div style="background: radial-gradient(circle, #1e293b 0%, #020617 100%); border: 1px solid #334155; border-radius: 14px; height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 18px 0;">
+                <div style="font-size: 2.4rem; margin-bottom: 6px;">🇬🇭 ✨</div>
+                <div id="ad-player-timer" style="font-size: 1.6rem; font-weight: 800; color: #38bdf8;">6s</div>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 6px;">Google AdSense H5 Verified Sponsor</div>
             </div>
-            <table class="control-table">
-                <tr><td><strong>Touchscreen Swipe</strong></td><td>Swipe <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd> anywhere to walk</td></tr>
-                <tr><td><strong>Direct Touch Tap</strong></td><td>Tap center to Interact / Action</td></tr>
-                <tr><td><strong>Quick Buttons</strong></td><td>Use floating bottom pills (<kbd>Action</kbd>, <kbd>Phone</kbd>, <kbd>Menu</kbd>)</td></tr>
-                <tr><td><strong>Keyboard Arrows</strong></td><td><kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd></td></tr>
-                <tr><td><strong>Action / Talk</strong></td><td><kbd>Enter</kbd> or <kbd>Space</kbd></td></tr>
-                <tr><td><strong>Left Soft Key (Menu)</strong></td><td><kbd>Q</kbd> or <kbd>F1</kbd></td></tr>
-                <tr><td><strong>Right Soft Key (Back)</strong></td><td><kbd>W</kbd> or <kbd>F2</kbd></td></tr>
-                <tr><td><strong>Pause / Settings</strong></td><td><kbd>Esc</kbd></td></tr>
-            </table>
-        </div>
-    </div>
 
-    <!-- MoMo Shop / In-App Purchases Modal -->
-    <div id="momo-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('open')">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3>💰 Alvyd MoMo Shop</h3>
-                <button class="modal-close-btn" onclick="document.getElementById('momo-modal').classList.remove('open')">✕</button>
-            </div>
-            <p style="font-size:0.82rem; color:#94a3b8; margin-top:0;">Instant checkout via MTN Mobile Money, Telecel Cash & Bank Cards.</p>
-            <div class="momo-packages">
-                <div class="momo-card" onclick="window.purchaseMoMoPackage('Waakye Pocket', 100, 200)">
-                    <div class="momo-title">Waakye Pocket</div>
-                    <div class="momo-reward">+100 Cedis</div>
-                    <div class="momo-price">GH₵ 2.00</div>
-                </div>
-                <div class="momo-card" onclick="window.purchaseMoMoPackage('Osu Night Out', 600, 1000)">
-                    <span class="momo-badge">POPULAR</span>
-                    <div class="momo-title">Osu Night Out</div>
-                    <div class="momo-reward">+600 Cedis</div>
-                    <div class="momo-price">GH₵ 10.00</div>
-                </div>
-                <div class="momo-card" onclick="window.purchaseMoMoPackage('East Legon Boss', 3000, 3500)">
-                    <span class="momo-badge">BEST VALUE</span>
-                    <div class="momo-title">East Legon Boss</div>
-                    <div class="momo-reward">+3,000 Cedis</div>
-                    <div class="momo-price">GH₵ 35.00</div>
-                </div>
-                <div class="momo-card" onclick="window.purchaseMoMoPackage('Alvyd VIP Pass', 10000, 5000)">
-                    <span class="momo-badge">VIP</span>
-                    <div class="momo-title">Alvyd VIP Pass</div>
-                    <div class="momo-reward">Infinite Energy</div>
-                    <div class="momo-price">GH₵ 50.00</div>
-                </div>
-            </div>
-            <div class="momo-provider-badges">
-                <span>🟡 MTN MoMo</span> • <span>🔴 Telecel Cash</span> • <span>🔵 AT Money</span> • <span>💳 Visa/Mastercard</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Rewarded Video Ad Modal -->
-    <div id="ad-modal" class="modal-overlay">
-        <div class="modal-card" style="text-align: center;">
-            <div class="modal-header">
-                <h3>📺 Sponsored Offer</h3>
-            </div>
-            <p style="color:#94a3b8; font-size:0.9rem;">Watch this 10-second sponsor ad to earn <strong>+50 Cedis</strong> free!</p>
-            <div style="background:#000; border-radius:10px; height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin:16px 0; border:1px solid #334155;">
-                <div style="font-size:2rem; margin-bottom:8px;">🎬</div>
-                <div id="ad-timer" style="font-size:1.4rem; font-weight:800; color:#38bdf8;">10s</div>
-                <div style="font-size:0.8rem; color:#64748b; margin-top:4px;">Google H5 Games Ad Simulator</div>
-            </div>
-            <button id="ad-claim-btn" class="btn-submit" style="display:none;" onclick="window.claimAdReward()">Claim +50 Cedis!</button>
+            <button id="ad-player-claim-btn" class="btn-ad-multiplier" style="display: none;">
+                🎁 Claim Reward!
+            </button>
         </div>
     </div>
 
     <!-- Firebase Authentication & Cloud Save Modal -->
-    <div id="auth-modal" class="modal-overlay" onclick="if(event.target === this) this.classList.remove('open')">
+    <div id="auth-modal" class="modal-overlay" onclick="if(event.target===this) this.classList.remove('open')">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 id="auth-modal-title">👤 Alvyd Player Account</h3>
+                <h3>👤 Alvyd Player Account & Cloud Save</h3>
                 <button class="modal-close-btn" onclick="document.getElementById('auth-modal').classList.remove('open')">✕</button>
             </div>
 
-            <!-- Profile View (when logged in) -->
-            <div id="auth-profile-view" style="display:none;">
-                <div style="text-align:center; margin-bottom:16px;">
-                    <div style="font-size:2.5rem;">🎮</div>
-                    <h4 id="profile-username" style="margin:6px 0; font-size:1.2rem; color:#38bdf8;">@player</h4>
-                    <p id="profile-meta" style="color:#94a3b8; font-size:0.85rem; margin:0;">Age: 21 • user@example.com</p>
+            <!-- Profile View (When Logged In) -->
+            <div id="auth-profile-view" style="display: none;">
+                <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b, #ef4444); display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">👑</div>
+                    <div>
+                        <div id="profile-username" style="font-size: 1.1rem; font-weight: 800;">@Kwame</div>
+                        <div id="profile-meta" style="font-size: 0.8rem; color: #94a3b8;">player@accralife.com</div>
+                    </div>
                 </div>
-                <button class="btn-submit" onclick="window.syncCloudSave()" style="margin-bottom:8px;">💾 Sync Progress to Cloud</button>
-                <button class="bar-btn" onclick="window.handleSignOut()" style="width:100%; justify-content:center; padding:10px;">🚪 Sign Out</button>
+
+                <button class="btn-submit" style="margin-bottom: 10px;" onclick="window.syncCloudSave()">
+                    ☁️ Save Progress to Cloud Firestore
+                </button>
+                <button class="btn-standard" style="margin-bottom: 10px;" onclick="window.restoreCloudSave()">
+                    📥 Restore Cloud Save to Game
+                </button>
+                <button class="btn-standard" style="color: #f87171;" onclick="window.handleSignOut()">
+                    Sign Out
+                </button>
             </div>
 
-            <!-- Auth Form (when logged out) -->
+            <!-- Form View (When Logged Out) -->
             <div id="auth-form-view">
                 <div class="auth-tabs">
-                    <button class="auth-tab-btn active" id="tab-login-btn" onclick="window.switchAuthTab('login')">Sign In</button>
-                    <button class="auth-tab-btn" id="tab-signup-btn" onclick="window.switchAuthTab('signup')">Create Account</button>
+                    <button id="tab-login-btn" class="auth-tab-btn active" onclick="window.switchAuthTab('login')">Sign In</button>
+                    <button id="tab-signup-btn" class="auth-tab-btn" onclick="window.switchAuthTab('signup')">Create Account</button>
                 </div>
 
-                <div id="auth-msg" class="auth-message"></div>
+                <form onsubmit="event.preventDefault(); window.handleAuthSubmit();">
+                    <div class="auth-form-group" id="group-username" style="display: none;">
+                        <label>Username</label>
+                        <input id="auth-username" class="auth-input" type="text" placeholder="e.g. AccraBaller">
+                    </div>
 
-                <form id="auth-form" onsubmit="window.handleAuthSubmit(event)">
-                    <div class="form-group" id="group-username" style="display:none;">
-                        <label>Unique Username</label>
-                        <input type="text" id="auth-username" class="form-control" placeholder="e.g. kofi_accra" autocomplete="username">
-                    </div>
-                    <div class="form-group" id="group-age" style="display:none;">
-                        <label>Age (13+)</label>
-                        <input type="number" id="auth-age" class="form-control" placeholder="e.g. 21" min="13" max="120">
-                    </div>
-                    <div class="form-group">
+                    <div class="auth-form-group">
                         <label>Email Address</label>
-                        <input type="email" id="auth-email" class="form-control" placeholder="you@example.com" required autocomplete="email">
+                        <input id="auth-email" class="auth-input" type="email" placeholder="you@example.com" required>
                     </div>
-                    <div class="form-group">
+
+                    <div class="auth-form-group">
                         <label>Password</label>
-                        <input type="password" id="auth-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                        <input id="auth-password" class="auth-input" type="password" placeholder="••••••••" required>
                     </div>
-                    <div style="display:flex; justify-content:flex-end; margin-bottom:12px;" id="forgot-password-link">
-                        <a href="javascript:void(0)" onclick="window.handleForgotPassword()" style="color:#38bdf8; font-size:0.8rem; text-decoration:none;">Forgot Password?</a>
-                    </div>
-                    <button type="submit" id="auth-submit-btn" class="btn-submit">Sign In</button>
+
+                    <button id="auth-submit-btn" class="btn-submit" type="submit">Sign In</button>
+                    <div id="auth-msg" class="auth-message"></div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- CheerpJ WebAssembly JVM Loader -->
-    <script src="https://cjrtnc.leaningtech.com/20260317_2978/loader.js"></script>
-    <!-- Emulator Main Engine -->
-    <script type="module" src="./src/main.js"></script>
-
-    <!-- Firebase Auth & Firestore Client Service Module -->
+    <!-- Firebase SDK Modules (Official Firestore & Auth) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { 
             getAuth, 
-            createUserWithEmailAndPassword, 
             signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
             signOut, 
-            sendPasswordResetEmail, 
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { 
             getFirestore, 
             doc, 
-            getDoc, 
             setDoc, 
+            getDoc, 
             serverTimestamp 
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { gameState } from './src/game/state.js';
 
-        // Firebase Configuration for project alvyd-7c69d
         const firebaseConfig = {
             projectId: "alvyd-7c69d",
             appId: "1:950214032279:web:94fbf914c37fe1cb1ce2d2",
@@ -725,174 +189,78 @@
 
         let currentUser = null;
         let currentUserProfile = null;
-        let currentAuthMode = 'login';
+        let authMode = 'login';
 
-        // Listen for Authentication state
         onAuthStateChanged(auth, async (user) => {
             currentUser = user;
-            const accountBtn = document.getElementById('account-btn');
             if (user) {
                 try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        currentUserProfile = userDoc.data();
-                        accountBtn.innerHTML = `👤 @${currentUserProfile.username}`;
-                    } else {
-                        accountBtn.innerHTML = `👤 @Player`;
+                    const snap = await getDoc(doc(db, "users", user.uid));
+                    if (snap.exists()) {
+                        currentUserProfile = snap.data();
+                        document.getElementById('profile-username').textContent = `@${currentUserProfile.username}`;
+                        document.getElementById('profile-meta').textContent = `${user.email}`;
                     }
                 } catch(e) {
-                    accountBtn.innerHTML = `👤 Logged In`;
+                    console.warn('Profile fetch error:', e);
                 }
+                document.getElementById('auth-profile-view').style.display = 'block';
+                document.getElementById('auth-form-view').style.display = 'none';
             } else {
                 currentUserProfile = null;
-                accountBtn.innerHTML = `👤 Account`;
+                document.getElementById('auth-profile-view').style.display = 'none';
+                document.getElementById('auth-form-view').style.display = 'block';
             }
         });
 
-        // Window Globals for Modals
-        window.openAuthModal = () => {
-            const modal = document.getElementById('auth-modal');
-            const profileView = document.getElementById('auth-profile-view');
-            const formView = document.getElementById('auth-form-view');
-            
-            if (currentUser && currentUserProfile) {
-                profileView.style.display = 'block';
-                formView.style.display = 'none';
-                document.getElementById('profile-username').innerText = `@${currentUserProfile.username}`;
-                document.getElementById('profile-meta').innerText = `Age: ${currentUserProfile.age} • ${currentUser.email}`;
-            } else {
-                profileView.style.display = 'none';
-                formView.style.display = 'block';
-                window.switchAuthTab('login');
-            }
-            modal.classList.add('open');
-        };
-
         window.switchAuthTab = (mode) => {
-            currentAuthMode = mode;
+            authMode = mode;
             const loginBtn = document.getElementById('tab-login-btn');
             const signupBtn = document.getElementById('tab-signup-btn');
             const groupUser = document.getElementById('group-username');
-            const groupAge = document.getElementById('group-age');
             const submitBtn = document.getElementById('auth-submit-btn');
-            const forgotLink = document.getElementById('forgot-password-link');
-            const msg = document.getElementById('auth-msg');
-            msg.className = 'auth-message';
 
             if (mode === 'signup') {
                 loginBtn.classList.remove('active');
                 signupBtn.classList.add('active');
                 groupUser.style.display = 'block';
-                groupAge.style.display = 'block';
-                forgotLink.style.display = 'none';
-                submitBtn.innerText = 'Create Account';
+                submitBtn.textContent = 'Create Account';
             } else {
                 signupBtn.classList.remove('active');
                 loginBtn.classList.add('active');
                 groupUser.style.display = 'none';
-                groupAge.style.display = 'none';
-                forgotLink.style.display = 'flex';
-                submitBtn.innerText = 'Sign In';
+                submitBtn.textContent = 'Sign In';
             }
         };
 
-        window.handleAuthSubmit = async (e) => {
-            e.preventDefault();
-            const msg = document.getElementById('auth-msg');
+        window.handleAuthSubmit = async () => {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
+            const username = document.getElementById('auth-username').value.trim() || 'Player';
+            const msg = document.getElementById('auth-msg');
 
             msg.className = 'auth-message';
-            msg.style.display = 'none';
+            msg.textContent = 'Processing...';
 
-            if (currentAuthMode === 'signup') {
-                const rawUsername = document.getElementById('auth-username').value.trim().toLowerCase();
-                const username = rawUsername.replace(/[^a-z0-9_]/g, '');
-                const age = parseInt(document.getElementById('auth-age').value, 10);
-
-                if (username.length < 3 || username.length > 25) {
-                    msg.className = 'auth-message error';
-                    msg.innerText = 'Username must be between 3 and 25 alphanumeric characters.';
-                    return;
-                }
-                if (isNaN(age) || age < 13 || age > 120) {
-                    msg.className = 'auth-message error';
-                    msg.innerText = 'Please provide a valid age (13+).';
-                    return;
-                }
-
-                try {
-                    // Check if username is already claimed
-                    const unameSnap = await getDoc(doc(db, "usernames", username));
-                    if (unameSnap.exists()) {
-                        msg.className = 'auth-message error';
-                        msg.innerText = `Username @${username} is already taken. Please choose another.`;
-                        return;
-                    }
-
-                    // Create Firebase Auth user
-                    const userCred = await createUserWithEmailAndPassword(auth, email, password);
-                    const uid = userCred.user.uid;
-
-                    // Reserve username & create profile in Firestore
-                    await setDoc(doc(db, "usernames", username), {
-                        uid: uid,
-                        createdAt: serverTimestamp()
-                    });
-
-                    await setDoc(doc(db, "users", uid), {
-                        username: username,
-                        email: email,
-                        age: age,
-                        createdAt: serverTimestamp()
-                    });
-
-                    // Initialize first save
-                    await setDoc(doc(db, "saves", uid), {
-                        cash: 300,
-                        energy: 100,
-                        district: "Jamestown",
-                        inventory: ["phone", "id_card"],
-                        updatedAt: serverTimestamp()
-                    });
-
-                    currentUserProfile = { username, email, age };
-                    msg.className = 'auth-message success';
-                    msg.innerText = `Welcome to Accra Life, @${username}!`;
-                    setTimeout(() => document.getElementById('auth-modal').classList.remove('open'), 1200);
-                } catch(err) {
-                    msg.className = 'auth-message error';
-                    msg.innerText = err.message || 'Error creating account';
-                }
-            } else {
-                // Sign in
-                try {
-                    const userCred = await signInWithEmailAndPassword(auth, email, password);
-                    msg.className = 'auth-message success';
-                    msg.innerText = 'Signed in successfully! Loading progress...';
-                    setTimeout(() => document.getElementById('auth-modal').classList.remove('open'), 1000);
-                } catch(err) {
-                    msg.className = 'auth-message error';
-                    msg.innerText = 'Invalid email or password. Please try again.';
-                }
-            }
-        };
-
-        window.handleForgotPassword = async () => {
-            const email = document.getElementById('auth-email').value.trim();
-            const msg = document.getElementById('auth-msg');
-            if (!email) {
-                msg.className = 'auth-message error';
-                msg.innerText = 'Please enter your email above to reset password.';
-                return;
-            }
             try {
-                await sendPasswordResetEmail(auth, email);
-                msg.className = 'auth-message success';
-                msg.innerText = `Password reset link sent to ${email}. Check your inbox!`;
+                if (authMode === 'signup') {
+                    const cred = await createUserWithEmailAndPassword(auth, email, password);
+                    await setDoc(doc(db, "users", cred.user.uid), {
+                        username,
+                        email,
+                        createdAt: serverTimestamp()
+                    });
+                    msg.className = 'auth-message success';
+                    msg.textContent = `Welcome to Accra Life, @${username}!`;
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    msg.className = 'auth-message success';
+                    msg.textContent = 'Signed in successfully!';
+                }
+                setTimeout(() => document.getElementById('auth-modal').classList.remove('open'), 1000);
             } catch(e) {
                 msg.className = 'auth-message error';
-                msg.innerText = e.message || 'Error sending password reset email.';
+                msg.textContent = e.message || 'Authentication error';
             }
         };
 
@@ -902,101 +270,43 @@
         };
 
         window.syncCloudSave = async () => {
-            if (!currentUser) return;
+            if (!currentUser) {
+                alert("Please sign in or create an account to save your progress.");
+                return;
+            }
             try {
                 await setDoc(doc(db, "saves", currentUser.uid), {
-                    cash: 850,
-                    energy: 90,
-                    district: "Osu",
-                    inventory: ["phone", "waakye", "sunglasses"],
+                    uid: currentUser.uid,
+                    saveData: JSON.stringify(gameState.data),
+                    cedis: gameState.data.cedis,
+                    clout: gameState.data.clout,
                     updatedAt: serverTimestamp()
                 }, { merge: true });
-                alert("✨ Game progress successfully saved to Cloud Firestore!");
+                alert(`✨ Game progress saved to Cloud Firestore!\nWallet: ₵${gameState.data.cedis} Cedis`);
             } catch(e) {
-                alert("Error syncing save: " + e.message);
+                alert('Error syncing save: ' + e.message);
             }
         };
 
-        // Paystack Mobile Money Integration
-        window.openMoMoModal = () => {
-            document.getElementById('momo-modal').classList.add('open');
-        };
-
-        window.purchaseMoMoPackage = (packageName, cedisReward, amountInPesewas) => {
-            const email = currentUser ? currentUser.email : "player@accralife.com";
-            
-            const runCheckout = () => {
-                if (typeof PaystackPop !== "undefined") {
-                    const handler = PaystackPop.setup({
-                        key: 'pk_test_accralife_dummy_key',
-                        email: email,
-                        amount: amountInPesewas,
-                        currency: 'GHS',
-                        channels: ['mobile_money', 'card'],
-                        metadata: {
-                            custom_fields: [
-                                { display_name: "Package", variable_name: "package", value: packageName },
-                                { display_name: "Username", variable_name: "username", value: currentUserProfile ? currentUserProfile.username : "Guest" }
-                            ]
-                        },
-                        callback: function(response) {
-                            alert(`🎉 Payment Successful! Reference: ${response.reference}\n+${cedisReward} Cedis credited to your account!`);
-                            document.getElementById('momo-modal').classList.remove('open');
-                        }
-                    });
-                    handler.openIframe();
+        window.restoreCloudSave = async () => {
+            if (!currentUser) return;
+            try {
+                const snap = await getDoc(doc(db, "saves", currentUser.uid));
+                if (snap.exists() && snap.data().saveData) {
+                    gameState.data = JSON.parse(snap.data().saveData);
+                    gameState.save();
+                    alert(`📥 Cloud save restored successfully!\nWallet: ₵${gameState.data.cedis} Cedis`);
+                    document.getElementById('auth-modal').classList.remove('open');
                 } else {
-                    alert(`MoMo Checkout: ${packageName} (GH₵ ${(amountInPesewas/100).toFixed(2)})\n+${cedisReward} Cedis ready to credit!`);
+                    alert('No cloud save found for this account.');
                 }
-            };
-
-            if (typeof PaystackPop === "undefined") {
-                const s = document.createElement("script");
-                s.src = "https://js.paystack.co/v1/inline.js";
-                s.onload = runCheckout;
-                s.onerror = () => runCheckout();
-                document.head.appendChild(s);
-            } else {
-                runCheckout();
-            }
-        };
-
-        // Rewarded Video Ad Offer
-        window.triggerRewardedAd = () => {
-            const adModal = document.getElementById('ad-modal');
-            const timerEl = document.getElementById('ad-timer');
-            const claimBtn = document.getElementById('ad-claim-btn');
-            
-            adModal.classList.add('open');
-            claimBtn.style.display = 'none';
-            let timeLeft = 10;
-            timerEl.innerText = `${timeLeft}s`;
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                if (timeLeft > 0) {
-                    timerEl.innerText = `${timeLeft}s`;
-                } else {
-                    clearInterval(interval);
-                    timerEl.innerText = "Completed! ✅";
-                    claimBtn.style.display = 'block';
-                }
-            }, 1000);
-        };
-
-        window.claimAdReward = () => {
-            document.getElementById('ad-modal').classList.remove('open');
-            alert("🎉 Reward Claimed: +50 Cedis added to your character balance!");
-        };
-
-        // Fullscreen toggle
-        window.toggleFullscreen = () => {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(() => {});
-            } else {
-                document.exitFullscreen().catch(() => {});
+            } catch(e) {
+                alert('Error restoring save: ' + e.message);
             }
         };
     </script>
+
+    <!-- Master Game Application Entry Point -->
+    <script type="module" src="src/game/main.js"></script>
 </body>
 </html>

@@ -108,18 +108,31 @@ function setListeners() {
         }
     });
 
+    function getCanvasCoords(clientX, clientY) {
+        const rect = display.getBoundingClientRect();
+        if (!rect.width || !rect.height) return { x: 160, y: 120 };
+        const targetW = (screenCtx && screenCtx.canvas && screenCtx.canvas.width) ? screenCtx.canvas.width : 320;
+        const targetH = (screenCtx && screenCtx.canvas && screenCtx.canvas.height) ? screenCtx.canvas.height : 240;
+        const x = Math.round(((clientX - rect.left) / rect.width) * targetW);
+        const y = Math.round(((clientY - rect.top) / rect.height) * targetH);
+        return {
+            x: Math.max(0, Math.min(targetW, x)),
+            y: Math.max(0, Math.min(targetH, y))
+        };
+    }
+
     display.addEventListener('mousedown', async e => {
         display.focus();
         if (noMouse) return;
 
+        const c = getCanvasCoords(e.clientX, e.clientY);
         evtQueue.queueEvent({
             kind: 'pointerpressed',
-            x: e.offsetX / display.currentCSSZoom | 0,
-            y: e.offsetY / display.currentCSSZoom | 0,
+            x: c.x,
+            y: c.y,
         });
 
         mouseDown = true;
-
         e.preventDefault();
     });
 
@@ -127,10 +140,11 @@ function setListeners() {
         if (noMouse) return;
         if (!mouseDown) return;
 
+        const c = getCanvasCoords(e.clientX, e.clientY);
         evtQueue.queueEvent({
             kind: 'pointerdragged',
-            x: e.offsetX / display.currentCSSZoom | 0,
-            y: e.offsetY / display.currentCSSZoom | 0,
+            x: c.x,
+            y: c.y,
         });
 
         e.preventDefault();
@@ -142,35 +156,29 @@ function setListeners() {
 
         mouseDown = false;
 
+        const c = getCanvasCoords(e.clientX, e.clientY);
         evtQueue.queueEvent({
             kind: 'pointerreleased',
-            x: (e.pageX - display.offsetLeft) / display.currentCSSZoom | 0,
-            y: (e.pageY - display.offsetTop) / display.currentCSSZoom | 0,
+            x: c.x,
+            y: c.y,
         });
 
         e.preventDefault();
     });
-
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchStartTime = 0;
 
     display.addEventListener('touchstart', async e => {
         display.focus();
         noMouse = true;
 
         if (e.changedTouches.length > 0) {
-            touchStartX = e.changedTouches[0].clientX;
-            touchStartY = e.changedTouches[0].clientY;
-            touchStartTime = Date.now();
+            const touch = e.changedTouches[0];
+            const c = getCanvasCoords(touch.clientX, touch.clientY);
+            evtQueue.queueEvent({
+                kind: 'pointerpressed',
+                x: c.x,
+                y: c.y,
+            });
         }
-
-        evtQueue.queueEvent({
-            kind: 'pointerpressed',
-            x: (e.changedTouches[0].pageX - display.offsetLeft) / display.currentCSSZoom | 0,
-            y: (e.changedTouches[0].pageY - display.offsetTop) / display.currentCSSZoom | 0,
-        });
 
         e.preventDefault();
     }, {passive: false});
@@ -178,11 +186,15 @@ function setListeners() {
     display.addEventListener('touchmove', async e => {
         noMouse = true;
 
-        evtQueue.queueEvent({
-            kind: 'pointerdragged',
-            x: (e.changedTouches[0].pageX - display.offsetLeft) / display.currentCSSZoom | 0,
-            y: (e.changedTouches[0].pageY - display.offsetTop) / display.currentCSSZoom | 0,
-        });
+        if (e.changedTouches.length > 0) {
+            const touch = e.changedTouches[0];
+            const c = getCanvasCoords(touch.clientX, touch.clientY);
+            evtQueue.queueEvent({
+                kind: 'pointerdragged',
+                x: c.x,
+                y: c.y,
+            });
+        }
 
         e.preventDefault();
     }, {passive: false});
@@ -190,46 +202,14 @@ function setListeners() {
     display.addEventListener('touchend', async e => {
         noMouse = true;
 
-        evtQueue.queueEvent({
-            kind: 'pointerreleased',
-            x: (e.changedTouches[0].pageX - display.offsetLeft) / display.currentCSSZoom | 0,
-            y: (e.changedTouches[0].pageY - display.offsetTop) / display.currentCSSZoom | 0,
-        });
-
         if (e.changedTouches.length > 0) {
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            const dt = Date.now() - touchStartTime;
-            const dx = touchEndX - touchStartX;
-            const dy = touchEndY - touchStartY;
-            const absX = Math.abs(dx);
-            const absY = Math.abs(dy);
-
-            if (absX > 30 || absY > 30) {
-                if (absX > absY) {
-                    if (dx > 0) window.tapGameKey('ArrowRight');
-                    else window.tapGameKey('ArrowLeft');
-                } else {
-                    if (dy > 0) window.tapGameKey('ArrowDown');
-                    else window.tapGameKey('ArrowUp');
-                }
-            } else if (dt < 400) {
-                const rect = display.getBoundingClientRect();
-                const relX = (touchEndX - rect.left) / rect.width;
-                const relY = (touchEndY - rect.top) / rect.height;
-
-                if (relX < 0.2) {
-                    window.tapGameKey('ArrowLeft');
-                } else if (relX > 0.8) {
-                    window.tapGameKey('ArrowRight');
-                } else if (relY < 0.2) {
-                    window.tapGameKey('ArrowUp');
-                } else if (relY > 0.8) {
-                    window.tapGameKey('ArrowDown');
-                } else {
-                    window.tapGameKey('Enter');
-                }
-            }
+            const touch = e.changedTouches[0];
+            const c = getCanvasCoords(touch.clientX, touch.clientY);
+            evtQueue.queueEvent({
+                kind: 'pointerreleased',
+                x: c.x,
+                y: c.y,
+            });
         }
 
         e.preventDefault();
