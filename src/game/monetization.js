@@ -106,6 +106,7 @@ export class MonetizationManager {
             case 'reward_lucky_spin': return '🎡 Extra Golden Wheel Spin';
             case 'reward_cash_aid': return '🪙 Quick Cash: +₵100 Cedis';
             case 'reward_gems': return '💎 Free Diamond Gems (+5 Gems)';
+            case 'story_quest_double': return '📜 2x Chapter Story Quest Bonus (+Cedis & Clout)';
             default: return '📺 Sponsored Video Offer';
         }
     }

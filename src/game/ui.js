@@ -4,6 +4,7 @@
 import { gameState } from './state.js';
 import { audio } from './audio.js';
 import { monetization } from './monetization.js';
+import { storyEngine, STORY_CHAPTERS, STORY_QUESTS } from './story.js';
 
 export class UIManager {
     constructor(engine) {
@@ -93,11 +94,26 @@ export class UIManager {
                 </div>
             </header>
 
+            <!-- Floating Story Objective Widget -->
+            <div id="hud-story-widget" onclick="window.ui.openStoryJournal()" title="Click to view Accra Campaign Journal">
+                <div class="story-widget-header">
+                    <span class="story-widget-badge" id="story-ch-badge">📜 Ch. 1: The Osu Hustle</span>
+                    <span class="story-widget-tap">Journal ›</span>
+                </div>
+                <div class="story-widget-title" id="story-quest-title">👉 Arrival on Oxford Street</div>
+                <div class="story-widget-sub" id="story-quest-objective">Talk to Auntie Muni at Waakye Stall</div>
+            </div>
+
             <!-- Bottom Floating Action Navigation Dock -->
             <nav id="hud-dock">
                 <button class="dock-btn" onclick="window.ui.openTravelModal()">
                     <span class="dock-icon">🗺️</span>
                     <span class="dock-text">Travel</span>
+                </button>
+
+                <button class="dock-btn dock-btn-story" onclick="window.ui.openStoryJournal()">
+                    <span class="dock-icon">📜</span>
+                    <span class="dock-text">Story</span>
                 </button>
 
                 <button class="dock-btn" onclick="window.ui.triggerDanceMenu()">
@@ -149,6 +165,16 @@ export class UIManager {
 
         document.getElementById('hud-cedis-val').textContent = `₵${data.cedis.toLocaleString()}`;
         document.getElementById('hud-gems-val').textContent = `${data.gems}`;
+
+        // Update Story Objective Tracker
+        const currQuest = storyEngine.getCurrentQuest();
+        const currCh = storyEngine.getCurrentChapter();
+        const widgetBadge = document.getElementById('story-ch-badge');
+        const widgetTitle = document.getElementById('story-quest-title');
+        const widgetObj = document.getElementById('story-quest-objective');
+        if (widgetBadge && currCh) widgetBadge.textContent = `📜 Ch. ${currCh.id}: ${currCh.title}`;
+        if (widgetTitle && currQuest) widgetTitle.textContent = `👉 ${currQuest.title}`;
+        if (widgetObj && currQuest) widgetObj.textContent = currQuest.objectiveText;
     }
 
     // --- Virtual Touch Joystick (Mobile 360-degree analog controls) ---
@@ -631,5 +657,337 @@ export class UIManager {
     openAccountModal() {
         const modal = document.getElementById('auth-modal');
         if (modal) modal.classList.add('open');
+    }
+
+    // --- STORYLINE & NARRATIVE RPG MODALS ---
+    openNpcDialogue(npcId) {
+        audio.unlock();
+        const root = document.getElementById('modals-root');
+        if (!root) return;
+
+        const currentQuest = storyEngine.getCurrentQuest();
+        const isTarget = currentQuest && currentQuest.targetNpc === npcId;
+
+        if (isTarget) {
+            audio.playDialoguePop();
+            const dialogue = currentQuest.dialogue;
+            const choicesHtml = dialogue.choices.map((c, idx) => `
+                <button class="story-choice-btn" onclick="window.ui.chooseStoryOption('${currentQuest.id}', ${idx})">
+                    <span class="choice-text">${c.text}</span>
+                    <span class="choice-consequence">${c.consequence}</span>
+                </button>
+            `).join('');
+
+            const linesHtml = dialogue.lines.map(line => `<p class="dialogue-line">${line}</p>`).join('');
+
+            root.innerHTML = `
+                <div class="modal-overlay open dialogue-overlay" onclick="if(event.target===this) this.remove()">
+                    <div class="dialogue-card">
+                        <div class="dialogue-speaker-banner">
+                            <div class="speaker-avatar">${dialogue.avatar}</div>
+                            <div class="speaker-meta">
+                                <div class="speaker-name">${dialogue.speaker}</div>
+                                <div class="speaker-title">${dialogue.title}</div>
+                            </div>
+                            <span class="quest-marker">MISSION TARGET</span>
+                            <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                        </div>
+                        <div class="dialogue-body">
+                            ${linesHtml}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #38bdf8; margin-bottom: 12px; font-weight: 700; background: rgba(56, 189, 248, 0.1); padding: 8px 12px; border-radius: 8px;">
+                            🎯 Current Objective: ${currentQuest.objectiveText}
+                        </div>
+                        <div class="dialogue-choices">
+                            ${choicesHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            audio.playTap();
+            const ambient = this.getAmbientNpcDialogue(npcId);
+            root.innerHTML = `
+                <div class="modal-overlay open dialogue-overlay" onclick="if(event.target===this) this.remove()">
+                    <div class="dialogue-card">
+                        <div class="dialogue-speaker-banner">
+                            <div class="speaker-avatar">${ambient.avatar}</div>
+                            <div class="speaker-meta">
+                                <div class="speaker-name">${ambient.speaker}</div>
+                                <div class="speaker-title">${ambient.title}</div>
+                            </div>
+                            <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                        </div>
+                        <div class="dialogue-body">
+                            <p class="dialogue-line">${ambient.line}</p>
+                        </div>
+                        <div class="dialogue-choices">
+                            <button class="story-choice-btn" onclick="this.closest('.modal-overlay').remove()">
+                                <span class="choice-text">"Charle, I hear you! Let me keep hustling."</span>
+                                <span class="choice-consequence">Keep exploring Accra streets</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    getAmbientNpcDialogue(npcId) {
+        const lines = {
+            auntie_muni: {
+                speaker: 'Auntie Muni',
+                title: 'Queen of Oxford Street Waakye',
+                avatar: '🍛',
+                line: 'Charle, Auntie Muni’s Waakye is always warm and blessed! If you work hard and respect your elders, Oxford Street will treat you well.'
+            },
+            dj_switch: {
+                speaker: 'DJ Switch',
+                title: 'Bloom Bar Resident DJ',
+                avatar: '🎧',
+                line: 'Chale Kwame! The vibes at Bloom Bar are unmatched. Once you get that beat in your feet, nobody can dim your light!'
+            },
+            sly_nana: {
+                speaker: 'Sly Nana',
+                title: 'Oxford Street Syndicate Boss',
+                avatar: '🕶️',
+                line: 'Watch yourself around these corners, boy. Accra is sweet, but if you don’t watch your back, sharks will eat your lunch.'
+            },
+            coach_bukom: {
+                speaker: 'Coach Bukom',
+                title: 'Jamestown Boxing Veteran',
+                avatar: '🥊',
+                line: 'Hands up, chin down! Bukom produced Azumah Nelson and Ike Quartey. If you want to conquer Accra, you must have the heart of a Ga lion!'
+            },
+            the_bulldozer: {
+                speaker: 'The Bulldozer',
+                title: 'Bukom Boxing Champion',
+                avatar: '💪',
+                line: 'Nobody tests my right hook and stays standing! You want respect in Jamestown? Earn it in the ring!'
+            },
+            serwaa: {
+                speaker: 'Serwaa',
+                title: 'Labadi Glamour Influencer',
+                avatar: '💎',
+                line: 'Hey darling! Labadi Beach is where the true stars shine. Keep your drip fresh and stay confident, everyone is watching! ✨'
+            },
+            dr_kobby: {
+                speaker: 'Dr. Kobby Boateng',
+                title: 'East Legon FinTech Founder',
+                avatar: '💻',
+                line: 'Innovation is the future of Ghana. We are transforming commerce across Africa with technology. Keep dreaming big, Kwame!'
+            }
+        };
+
+        return lines[npcId] || {
+            speaker: 'Accra Resident',
+            title: 'Local Chale',
+            avatar: '🇬🇭',
+            line: 'Akwaba! Accra is the center of the world. Hustle with good energy and fortune will find you!'
+        };
+    }
+
+    chooseStoryOption(questId, choiceIdx) {
+        audio.unlock();
+        const quest = STORY_QUESTS[questId];
+        if (!quest) return;
+        const choice = quest.dialogue.choices[choiceIdx];
+        if (!choice) return;
+
+        // Apply relationship affinity
+        if (quest.targetNpc && choice.affinity) {
+            gameState.data.story.relationships[quest.targetNpc] = (gameState.data.story.relationships[quest.targetNpc] || 0) + choice.affinity;
+        }
+
+        // Record player choice
+        gameState.data.story.choices[questId] = {
+            choiceIdx,
+            choiceText: choice.text,
+            consequence: choice.consequence,
+            timestamp: Date.now()
+        };
+
+        // Complete the quest in story engine
+        storyEngine.completeQuest(questId, choice.rewardDelta || {});
+        audio.playQuestComplete();
+
+        // Calculate total rewards for this quest
+        const cedisEarned = (quest.reward.cedis || 0) + (choice.rewardDelta?.cedis || 0);
+        const cloutEarned = (quest.reward.clout || 0) + (choice.rewardDelta?.clout || 0);
+        const gemsEarned = (quest.reward.gems || 0) + (choice.rewardDelta?.gems || 0);
+
+        // Render Quest Complete modal with AdSense Rewarded Video 2x multiplier
+        const root = document.getElementById('modals-root');
+        if (!root) return;
+
+        root.innerHTML = `
+            <div class="modal-overlay open" style="z-index: 10000;">
+                <div class="modal-card quest-complete-card">
+                    <div class="complete-icon">🏆</div>
+                    <div class="complete-header">CHAPTER QUEST COMPLETED!</div>
+                    <div class="complete-title">${quest.title}</div>
+                    <div class="complete-desc" style="color: #fbbf24; font-weight: 600; margin-bottom: 12px;">
+                        "${choice.consequence}"
+                    </div>
+                    <div class="complete-payout">
+                        ${cedisEarned > 0 ? `<div class="payout-item">🪙 +₵${cedisEarned} Cedis</div>` : ''}
+                        ${cloutEarned > 0 ? `<div class="payout-item">✨ +${cloutEarned} Clout</div>` : ''}
+                        ${gemsEarned > 0 ? `<div class="payout-item">💎 +${gemsEarned} Gems</div>` : ''}
+                        ${quest.reward.outfitUnlock ? `<div class="payout-item item-unlock">👑 Outfit: ${quest.reward.outfitUnlock}</div>` : ''}
+                    </div>
+
+                    <!-- Monetization: Rewarded Video 2x Payout Hook -->
+                    <div style="background: rgba(245, 158, 11, 0.15); border: 1px dashed #f59e0b; border-radius: 12px; padding: 12px; margin: 16px 0;">
+                        <div style="font-weight: 800; font-size: 0.95rem; color: #fbbf24; margin-bottom: 6px;">
+                            🎬 Sponsor Video 2x Quest Bonus!
+                        </div>
+                        <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 10px;">
+                            Watch a quick sponsor ad to double your quest earnings (+₵${cedisEarned || 150} Cedis & +${cloutEarned || 50} Clout)!
+                        </p>
+                        <button class="btn-momo-buy" onclick="window.ui.claimDoubleStoryReward(${cedisEarned || 150}, ${cloutEarned || 50})">
+                            📺 Watch 6s Ad to 2x Story Reward!
+                        </button>
+                    </div>
+
+                    <button class="btn-submit" onclick="this.closest('.modal-overlay').remove(); window.ui.showToast('Quest Completed! New objective active.', '📜');">
+                        Continue Adventure ›
+                    </button>
+                </div>
+            </div>
+        `;
+
+        this.renderHUD(gameState.data);
+    }
+
+    claimDoubleStoryReward(cedisBonus, cloutBonus) {
+        monetization.showRewardedVideo('story_quest_double', () => {
+            gameState.earnCedis(cedisBonus);
+            gameState.addClout(cloutBonus);
+            audio.playLevelUp();
+            this.showToast(`🎉 2x Quest Bonus Claimed! +₵${cedisBonus} Cedis & +${cloutBonus} Clout!`, '💰');
+            document.querySelector('.modal-overlay')?.remove();
+            this.renderHUD(gameState.data);
+        });
+    }
+
+    openStoryJournal() {
+        audio.playTap();
+        const root = document.getElementById('modals-root');
+        if (!root) return;
+
+        const currentQuest = storyEngine.getCurrentQuest();
+        const currentChapter = storyEngine.getCurrentChapter();
+        const currentChId = gameState.data.story?.chapter || 1;
+        const relationships = gameState.data.story?.relationships || {};
+
+        const characters = [
+            { id: 'auntie_muni', name: 'Auntie Muni', title: 'Queen of Waakye', avatar: '🍛' },
+            { id: 'dj_switch', name: 'DJ Switch', title: 'Bloom Bar DJ', avatar: '🎧' },
+            { id: 'sly_nana', name: 'Sly Nana', title: 'Oxford Street Boss', avatar: '🕶️' },
+            { id: 'coach_bukom', name: 'Coach Bukom', title: 'Jamestown Boxing Veteran', avatar: '🥊' },
+            { id: 'serwaa', name: 'Serwaa', title: 'Labadi Glamour Influencer', avatar: '💎' },
+            { id: 'dr_kobby', name: 'Dr. Kobby Boateng', title: 'East Legon FinTech Founder', avatar: '💻' }
+        ];
+
+        const chaptersHtml = STORY_CHAPTERS.map(ch => {
+            const isCompleted = currentChId > ch.id;
+            const isActive = currentChId === ch.id;
+            const badgeClass = isActive ? 'popular' : (isCompleted ? 'best' : '');
+            const badgeText = isCompleted ? '✅ COMPLETED' : (isActive ? '⚡ ACTIVE' : '🔒 LOCKED');
+
+            return `
+                <div class="story-chapter-card ${isActive ? 'active' : (isCompleted ? 'completed' : 'locked')}">
+                    <div class="ch-badge"><span class="shop-badge ${badgeClass}">${badgeText}</span></div>
+                    <div class="ch-num">Chapter ${ch.id}</div>
+                    <div class="ch-title">${ch.title}</div>
+                    <div class="ch-subtitle">${ch.subtitle}</div>
+                    <div class="ch-desc">${ch.description}</div>
+                </div>
+            `;
+        }).join('');
+
+        const relationsHtml = characters.map(c => {
+            const aff = relationships[c.id] || 0;
+            const pct = Math.max(0, Math.min(100, Math.round(((aff + 30) / 130) * 100)));
+            let statusText = 'Neutral 🤝';
+            let barColor = '#38bdf8';
+            if (aff >= 35) {
+                statusText = 'Loyal Ally 💚';
+                barColor = '#10b981';
+            } else if (aff >= 10) {
+                statusText = 'Friendly 😊';
+                barColor = '#34d399';
+            } else if (aff < -10) {
+                statusText = 'Hostile Nemesis 💀';
+                barColor = '#ef4444';
+            } else if (aff < 0) {
+                statusText = 'Distrusted ⚠️';
+                barColor = '#f59e0b';
+            }
+
+            return `
+                <div class="relation-item">
+                    <div class="rel-info">
+                        <span>${c.avatar} <strong>${c.name}</strong></span>
+                        <span style="font-weight: 700; color: ${barColor};">${statusText} (${aff > 0 ? '+' : ''}${aff})</span>
+                    </div>
+                    <div class="rel-bar">
+                        <div class="rel-fill" style="width: ${pct}%; background: ${barColor};"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        root.innerHTML = `
+            <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
+                <div class="modal-card story-journal-card">
+                    <div class="modal-header">
+                        <h3>📜 Accra Campaign: Oxford St to East Legon</h3>
+                        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                    </div>
+
+                    <!-- Active Mission Banner -->
+                    ${currentQuest ? `
+                    <div class="active-mission-banner">
+                        <div class="mission-tag">CURRENT ACTIVE MISSION (CH. ${currentChapter.id})</div>
+                        <div class="mission-title">${currentQuest.title}</div>
+                        <div class="mission-desc">👉 ${currentQuest.objectiveText}</div>
+                        <div class="mission-rewards">
+                            🎁 Rewards: 🪙 ₵${currentQuest.reward.cedis || 0} Cedis • ✨ ${currentQuest.reward.clout || 0} Clout ${currentQuest.reward.gems ? `• 💎 ${currentQuest.reward.gems} Gems` : ''}
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="active-mission-banner">
+                        <div class="mission-title">👑 Coronation Achieved!</div>
+                        <div class="mission-desc">You have conquered all 5 chapters and reign as the King of Accra!</div>
+                    </div>
+                    `}
+
+                    <!-- Campaign Chapters Progress -->
+                    <div style="margin-bottom: 18px;">
+                        <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px;">
+                            Accra RPG Chapters
+                        </h4>
+                        <div class="chapters-grid">
+                            ${chaptersHtml}
+                        </div>
+                    </div>
+
+                    <!-- Character Relationships -->
+                    <div style="margin-bottom: 16px;">
+                        <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px;">
+                            Character Relationship Network
+                        </h4>
+                        <div class="relations-container">
+                            ${relationsHtml}
+                        </div>
+                    </div>
+
+                    <button class="btn-submit" onclick="this.closest('.modal-overlay').remove()">
+                        Back to Accra Streets
+                    </button>
+                </div>
+            </div>
+        `;
     }
 }

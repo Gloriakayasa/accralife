@@ -1,7 +1,7 @@
-// Accra Life 3D - Main Game Entry Point
 import { GameEngine } from './engine.js';
 import { UIManager } from './ui.js';
 import { audio } from './audio.js';
+import { gameState } from './state.js';
 
 window.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('game-canvas');
@@ -14,6 +14,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const ui = new UIManager(engine);
     window.ui = ui;
     window.engine = engine;
+    window.gameState = gameState;
 
     // First user gesture unlocks procedural audio
     const unlockAudio = () => {

@@ -2,6 +2,7 @@
 // Procedurally modeled stylized environments: Osu Oxford St, East Legon, Labadi Beach, Jamestown, Penthouse
 
 import * as THREE from '../../libjs/three.module.js';
+import { Avatar3D } from './avatar.js';
 
 export class WorldManager {
     constructor(scene) {
@@ -10,6 +11,7 @@ export class WorldManager {
         this.environmentGroup = new THREE.Group();
         this.interactables = []; // Objects with click/interaction callbacks
         this.colliders = [];     // Collision bounding volumes for obstacles
+        this.npcAvatars = [];    // 3D story NPC character models
         this.scene.add(this.environmentGroup);
 
         this.initMaterials();
@@ -45,12 +47,75 @@ export class WorldManager {
         };
     }
 
+    createNPC(id, name, title, x, y, z, rotY, avatarConfig) {
+        const npcAvatar = new Avatar3D(avatarConfig);
+        npcAvatar.group.position.set(x, y, z);
+        npcAvatar.group.rotation.y = rotY;
+        this.environmentGroup.add(npcAvatar.group);
+        this.npcAvatars.push(npcAvatar);
+
+        // Add 3D Floating Nameplate Badge above head
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 70;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.beginPath();
+        ctx.roundRect(4, 4, 248, 62, 16);
+        ctx.fill();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(name, 128, 30);
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = '14px system-ui, sans-serif';
+        ctx.fillText(title, 128, 52);
+
+        const badgeTex = new THREE.CanvasTexture(canvas);
+        const badgeMat = new THREE.SpriteMaterial({ map: badgeTex });
+        const badgeSprite = new THREE.Sprite(badgeMat);
+        badgeSprite.position.set(0, 2.35, 0);
+        badgeSprite.scale.set(1.9, 0.52, 1);
+        npcAvatar.group.add(badgeSprite);
+
+        // Register interactable on click
+        const clickHitbox = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.7, 0.7, 2.2, 8),
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
+        clickHitbox.position.y = 1.1;
+        npcAvatar.group.add(clickHitbox);
+
+        this.addInteractable(clickHitbox, {
+            type: "npc",
+            npcId: id,
+            name: name,
+            title: title
+        });
+
+        // Add circle collider so player doesn't walk through NPC
+        this.addCircleCollider(x, z, 0.55);
+
+        return npcAvatar;
+    }
+
+    update(delta) {
+        for (const npc of this.npcAvatars) {
+            npc.update(delta);
+        }
+    }
+
     clearWorld() {
         while (this.environmentGroup.children.length > 0) {
             this.environmentGroup.remove(this.environmentGroup.children[0]);
         }
         this.interactables = [];
         this.colliders = [];
+        this.npcAvatars = [];
     }
 
     loadDistrict(districtId) {
@@ -152,6 +217,36 @@ export class WorldManager {
         // Osu Colliders
         this.addBoxCollider(3.5, 20.5, -12.5, 8.5); // Bloom Bar building
         this.addBoxCollider(-0.8, 2.8, -9.5, -6.5);  // Food stall
+
+        // Story NPCs in Osu
+        this.createNPC('auntie_muni', '🍛 Auntie Muni', 'Queen of Waakye', -1.5, 0, -5.5, 0.4, {
+            skinTone: 0x2b170c,
+            hairStyle: 'braids',
+            outfit: 'kente',
+            topColor: 0xf59e0b,
+            pantsColor: 0x1e293b,
+            shoesColor: 0xffffff
+        });
+
+        this.createNPC('dj_switch', '🎧 DJ Switch', 'Bloom Bar DJ', 12, 5.15, 1.2, -Math.PI / 2, {
+            skinTone: 0x4a2a18,
+            hairStyle: 'dreads',
+            outfit: 'streetwear',
+            topColor: 0x06b6d4,
+            pantsColor: 0x111111,
+            shoesColor: 0xffffff,
+            accessories: ['sunglasses', 'gold_chain']
+        });
+
+        this.createNPC('sly_nana', '🕶️ Sly Nana', 'Oxford St Boss', -3.5, 0, 1.5, Math.PI / 4, {
+            skinTone: 0x2b170c,
+            hairStyle: 'fade',
+            outfit: 'suit',
+            topColor: 0x111111,
+            pantsColor: 0x0f172a,
+            shoesColor: 0x000000,
+            accessories: ['sunglasses', 'gold_chain']
+        });
     }
 
     // --- DISTRICT 2: EAST LEGON LUXURY MANSIONS ---
@@ -209,6 +304,17 @@ export class WorldManager {
         // East Legon Colliders
         this.addBoxCollider(-1.5, 17.5, -14.5, 2.5); // Luxury Villa / Tech Hub
         this.addBoxCollider(-7.5, -4.5, 1.0, 3.0);   // Workstation Desk
+
+        // Story NPCs in East Legon
+        this.createNPC('dr_kobby', '💻 Dr. Kobby', 'FinTech Founder', -4.8, 0, 2.5, 0.2, {
+            skinTone: 0x3d2314,
+            hairStyle: 'fade',
+            outfit: 'suit',
+            topColor: 0x1e293b,
+            pantsColor: 0x0f172a,
+            shoesColor: 0x000000,
+            accessories: ['gold_chain']
+        });
     }
 
     // --- DISTRICT 3: LABADI BEACH ---
@@ -253,6 +359,17 @@ export class WorldManager {
 
         // Labadi Beach Colliders
         this.addBoxCollider(-3.3, 3.3, 2.0, 6.0); // Beach Bar
+
+        // Story NPCs in Labadi Beach
+        this.createNPC('serwaa', '💎 Serwaa', 'Fashion Executive', 3.0, 0.15, 6.0, -0.4, {
+            skinTone: 0x5c351f,
+            hairStyle: 'braids',
+            outfit: 'kente',
+            topColor: 0xec4899,
+            pantsColor: 0xffffff,
+            shoesColor: 0xffffff,
+            accessories: ['sunglasses', 'gold_chain']
+        });
     }
 
     // --- DISTRICT 4: JAMESTOWN & LIGHTHOUSE ---
@@ -307,6 +424,26 @@ export class WorldManager {
         // Jamestown Colliders
         this.addCircleCollider(12, -8, 2.5);          // Red & White Lighthouse
         this.addBoxCollider(-11.5, -4.5, -3.5, 3.5);  // Boxing Gym Ring
+
+        // Story NPCs in Jamestown
+        this.createNPC('coach_bukom', '🥊 Coach Bukom', 'Ga Boxing Trainer', -4.0, 0, 0, Math.PI / 2, {
+            skinTone: 0x3d2314,
+            hairStyle: 'fade',
+            outfit: 'streetwear',
+            topColor: 0xd97706,
+            pantsColor: 0x0f172a,
+            shoesColor: 0xffffff
+        });
+
+        this.createNPC('the_bulldozer', '💪 The Bulldozer', 'Bukom Champion', -8.0, 0.6, 0, 0, {
+            skinTone: 0x2b170c,
+            hairStyle: 'fade',
+            outfit: 'streetwear',
+            topColor: 0xdc2626,
+            pantsColor: 0x991b1b,
+            shoesColor: 0x000000,
+            accessories: ['gold_chain']
+        });
     }
 
     // --- DISTRICT 5: MY PENTHOUSE APARTMENT ---
@@ -359,6 +496,26 @@ export class WorldManager {
         this.addBoxCollider(-2.4, 2.4, -7.2, -4.8);    // Velvet sofa
         this.addBoxCollider(6.0, 10.0, -10.5, -5.5);   // King bed
         this.addBoxCollider(-10.4, -7.6, -11.8, -10.2);// Wardrobe
+
+        // Story NPCs in Penthouse
+        this.createNPC('serwaa', '👑 Serwaa', 'Your Partner', 2.0, 0, -4.5, -0.4, {
+            skinTone: 0x5c351f,
+            hairStyle: 'braids',
+            outfit: 'kente',
+            topColor: 0xfbbf24,
+            pantsColor: 0x1e293b,
+            shoesColor: 0xffffff,
+            accessories: ['gold_chain']
+        });
+
+        this.createNPC('sly_nana', '⚡ Sly Nana', 'Surrendered Boss', -2.0, 0, -2.0, 0.4, {
+            skinTone: 0x2b170c,
+            hairStyle: 'fade',
+            outfit: 'suit',
+            topColor: 0x111111,
+            pantsColor: 0x0f172a,
+            shoesColor: 0x000000
+        });
     }
 
     createPalmTree(x, y, z) {

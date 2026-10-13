@@ -269,6 +269,65 @@ class AudioManager {
         const now = this.ctx.currentTime;
         this.playShaker(now, 0.05);
     }
+
+    playDialoguePop() {
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(640, now + 0.06);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        osc.connect(gain);
+        gain.connect(this.sfxGain);
+        osc.start(now);
+        osc.stop(now + 0.07);
+    }
+
+    playQuestComplete() {
+        this.unlock();
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        // Talking drum fanfare
+        this.playDrum('talking_drum', now);
+        this.playDrum('talking_drum', now + 0.12);
+        this.playDrum('kick', now + 0.25);
+        // Triumph chord
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((f, i) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, now + 0.25 + i * 0.08);
+            gain.gain.setValueAtTime(0.35, now + 0.25 + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            osc.start(now + 0.25 + i * 0.08);
+            osc.stop(now + 0.95);
+        });
+    }
+
+    playStingDramatic() {
+        this.unlock();
+        if (!this.ctx || this.isMuted) return;
+        const now = this.ctx.currentTime;
+        const notes = [220.00, 261.63, 311.13]; // A3, C4, Eb4 (Diminished dramatic chord)
+        notes.forEach(f => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(f, now);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc.connect(gain);
+            gain.connect(this.sfxGain);
+            osc.start(now);
+            osc.stop(now + 0.8);
+        });
+    }
 }
 
 export const audio = new AudioManager();

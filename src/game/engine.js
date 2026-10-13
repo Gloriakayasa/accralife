@@ -260,7 +260,9 @@ export class GameEngine {
 
     handleInteraction(data) {
         audio.playTap();
-        if (data.type === 'gig') {
+        if (data.type === 'npc') {
+            window.ui.openNpcDialogue(data.npcId);
+        } else if (data.type === 'gig') {
             window.ui.triggerCurrentGig();
         } else if (data.type === 'food') {
             window.ui.triggerFoodPrompt();
@@ -399,6 +401,9 @@ export class GameEngine {
         const delta = Math.min(this.clock.getDelta(), 0.1);
 
         this.updatePlayer(delta);
+        if (this.world && this.world.update) {
+            this.world.update(delta);
+        }
         this.updateCamera(delta);
         this.renderer.render(this.scene, this.camera);
     }

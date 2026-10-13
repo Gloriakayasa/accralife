@@ -12,43 +12,66 @@ export class GameState {
 
     loadInitialState() {
         const saved = localStorage.getItem('accralife_save_v2');
+        let state = null;
         if (saved) {
             try {
-                return JSON.parse(saved);
+                state = JSON.parse(saved);
             } catch (e) {
                 console.warn('Corrupt save, resetting state:', e);
             }
         }
 
-        return {
-            name: "Kwame",
-            gender: "male",
-            cedis: 500, // In-game cash
-            gems: 25,   // Premium Gold Gems
-            energy: 100, // 0 - 100
-            hunger: 80,  // 0 - 100
-            clout: 120,  // Reputation
-            level: 1,
-            title: "Osu Hustler",
-            district: "osu",
-            avatar: {
-                skinTone: 0x3d2314,
-                hairStyle: "braids",
-                hairColor: 0x111111,
-                outfit: "kente",
-                topColor: 0xf59e0b,
-                pantsColor: 0x1e293b,
-                shoesColor: 0xffffff,
-                accessories: ["sunglasses", "gold_chain"]
-            },
-            inventory: ["waakye", "kelewele"],
-            unlockedOutfits: ["kente", "streetwear"],
-            unlockedHairs: ["fade", "braids", "afro"],
-            dailyStreak: 1,
-            lastLoginDate: new Date().toDateString(),
-            lastWheelSpinTime: 0,
-            hasVIPPass: false
-        };
+        if (!state) {
+            state = {
+                name: "Kwame",
+                gender: "male",
+                cedis: 500, // In-game cash
+                gems: 25,   // Premium Gold Gems
+                energy: 100, // 0 - 100
+                hunger: 80,  // 0 - 100
+                clout: 120,  // Reputation
+                level: 1,
+                title: "Osu Hustler",
+                district: "osu",
+                avatar: {
+                    skinTone: 0x3d2314,
+                    hairStyle: "braids",
+                    hairColor: 0x111111,
+                    outfit: "kente",
+                    topColor: 0xf59e0b,
+                    pantsColor: 0x1e293b,
+                    shoesColor: 0xffffff,
+                    accessories: ["sunglasses", "gold_chain"]
+                },
+                inventory: ["waakye", "kelewele"],
+                unlockedOutfits: ["kente", "streetwear"],
+                unlockedHairs: ["fade", "braids", "afro"],
+                dailyStreak: 1,
+                lastLoginDate: new Date().toDateString(),
+                lastWheelSpinTime: 0,
+                hasVIPPass: false
+            };
+        }
+
+        if (!state.story) {
+            state.story = {
+                chapter: 1,
+                currentQuestId: 'osu_arrival',
+                completedQuests: [],
+                relationships: {
+                    auntie_muni: 15,
+                    dj_switch: 5,
+                    sly_nana: -10,
+                    coach_bukom: 0,
+                    the_bulldozer: -20,
+                    serwaa: 0,
+                    dr_kobby: 0
+                },
+                choices: {}
+            };
+        }
+
+        return state;
     }
 
     save() {
@@ -75,6 +98,10 @@ export class GameState {
         return this.data.cedis;
     }
 
+    earnCedis(amount) {
+        return this.addCedis(amount);
+    }
+
     spendCedis(amount) {
         if (this.data.cedis < amount) return false;
         this.data.cedis -= amount;
@@ -88,11 +115,22 @@ export class GameState {
         return this.data.gems;
     }
 
+    earnGems(amount) {
+        return this.addGems(amount);
+    }
+
     spendGems(amount) {
         if (this.data.gems < amount) return false;
         this.data.gems -= amount;
         this.save();
         return true;
+    }
+
+    unlockOutfit(outfitId) {
+        if (!this.data.unlockedOutfits.includes(outfitId)) {
+            this.data.unlockedOutfits.push(outfitId);
+            this.save();
+        }
     }
 
     // --- Stats & Energy ---
