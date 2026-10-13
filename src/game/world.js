@@ -1,112 +1,41 @@
-// Accra Life 3D - Accra World & Districts Engine (Three.js)
-// Procedurally modeled stylized environments: Osu Oxford St, East Legon, Labadi Beach, Jamestown, Penthouse
+// Accra Life 3D - Isometric Mega City World (Lagos Life Clone)
+// Features: Gulf of Guinea Ocean, Ring Road, Oxford St, Low-Poly Landmarks, Floating Pin Badges, Animated Miniature Trotros
 
 import * as THREE from '../../libjs/three.module.js';
-import { Avatar3D } from './avatar.js';
 
 export class WorldManager {
     constructor(scene) {
         this.scene = scene;
-        this.currentDistrict = "osu"; // osu, east_legon, labadi, jamestown, penthouse
         this.environmentGroup = new THREE.Group();
-        this.interactables = []; // Objects with click/interaction callbacks
-        this.colliders = [];     // Collision bounding volumes for obstacles
-        this.npcAvatars = [];    // 3D story NPC character models
+        this.interactables = [];
+        this.pinSprites = [];
+        this.miniTrotros = [];
         this.scene.add(this.environmentGroup);
 
         this.initMaterials();
-        this.loadDistrict("osu");
-    }
-
-    addBoxCollider(minX, maxX, minZ, maxZ) {
-        this.colliders.push({ type: 'box', minX, maxX, minZ, maxZ });
-    }
-
-    addCircleCollider(x, z, radius) {
-        this.colliders.push({ type: 'circle', x, z, radius });
+        this.buildIsometricAccra();
     }
 
     initMaterials() {
         this.materials = {
-            road: new THREE.MeshLambertMaterial({ color: 0x27272a }),
-            sidewalk: new THREE.MeshLambertMaterial({ color: 0xa1a1aa }),
-            curb: new THREE.MeshLambertMaterial({ color: 0xeab308 }), // Yellow curb
-            grass: new THREE.MeshLambertMaterial({ color: 0x15803d }),
-            sand: new THREE.MeshLambertMaterial({ color: 0xfde047 }),
-            ocean: new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.1 }),
-            wood: new THREE.MeshLambertMaterial({ color: 0x78350f }),
-            palmLeaf: new THREE.MeshLambertMaterial({ color: 0x166534 }),
-            brick: new THREE.MeshLambertMaterial({ color: 0xb91c1c }),
-            whiteWall: new THREE.MeshLambertMaterial({ color: 0xf8fafc }),
-            glass: new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, metalness: 0.9, transparent: true, opacity: 0.7 }),
+            terrainGrass: new THREE.MeshLambertMaterial({ color: 0x15803d }),
+            terrainSand: new THREE.MeshLambertMaterial({ color: 0xfef08a }),
+            oceanWater: new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.1 }),
+            roadAsphalt: new THREE.MeshLambertMaterial({ color: 0x1e293b }),
+            roadStripe: new THREE.MeshLambertMaterial({ color: 0xfacc15 }),
+            sidewalk: new THREE.MeshLambertMaterial({ color: 0x94a3b8 }),
+            buildingWhite: new THREE.MeshLambertMaterial({ color: 0xf8fafc }),
+            buildingModern: new THREE.MeshLambertMaterial({ color: 0x0f172a }),
+            buildingBrick: new THREE.MeshLambertMaterial({ color: 0xb91c1c }),
+            buildingKenteYellow: new THREE.MeshLambertMaterial({ color: 0xf59e0b }),
+            glassBlue: new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0.75 }),
+            palmBark: new THREE.MeshLambertMaterial({ color: 0x78350f }),
+            palmLeaves: new THREE.MeshLambertMaterial({ color: 0x166534 }),
             neonPink: new THREE.MeshBasicMaterial({ color: 0xf43f5e }),
             neonGold: new THREE.MeshBasicMaterial({ color: 0xfbbf24 }),
-            poolWater: new THREE.MeshStandardMaterial({ color: 0x06b6d4, roughness: 0.1, metalness: 0.2 }),
-            floorParquet: new THREE.MeshLambertMaterial({ color: 0x92400e }),
-            sofaVelvet: new THREE.MeshLambertMaterial({ color: 0x4f46e5 })
+            trotroYellow: new THREE.MeshLambertMaterial({ color: 0xf59e0b }),
+            trotroWhite: new THREE.MeshLambertMaterial({ color: 0xffffff })
         };
-    }
-
-    createNPC(id, name, title, x, y, z, rotY, avatarConfig) {
-        const npcAvatar = new Avatar3D(avatarConfig);
-        npcAvatar.group.position.set(x, y, z);
-        npcAvatar.group.rotation.y = rotY;
-        this.environmentGroup.add(npcAvatar.group);
-        this.npcAvatars.push(npcAvatar);
-
-        // Add 3D Floating Nameplate Badge above head
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 70;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
-        ctx.beginPath();
-        ctx.roundRect(4, 4, 248, 62, 16);
-        ctx.fill();
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 22px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(name, 128, 30);
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = '14px system-ui, sans-serif';
-        ctx.fillText(title, 128, 52);
-
-        const badgeTex = new THREE.CanvasTexture(canvas);
-        const badgeMat = new THREE.SpriteMaterial({ map: badgeTex });
-        const badgeSprite = new THREE.Sprite(badgeMat);
-        badgeSprite.position.set(0, 2.35, 0);
-        badgeSprite.scale.set(1.9, 0.52, 1);
-        npcAvatar.group.add(badgeSprite);
-
-        // Register interactable on click
-        const clickHitbox = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.7, 0.7, 2.2, 8),
-            new THREE.MeshBasicMaterial({ visible: false })
-        );
-        clickHitbox.position.y = 1.1;
-        npcAvatar.group.add(clickHitbox);
-
-        this.addInteractable(clickHitbox, {
-            type: "npc",
-            npcId: id,
-            name: name,
-            title: title
-        });
-
-        // Add circle collider so player doesn't walk through NPC
-        this.addCircleCollider(x, z, 0.55);
-
-        return npcAvatar;
-    }
-
-    update(delta) {
-        for (const npc of this.npcAvatars) {
-            npc.update(delta);
-        }
     }
 
     clearWorld() {
@@ -114,436 +43,423 @@ export class WorldManager {
             this.environmentGroup.remove(this.environmentGroup.children[0]);
         }
         this.interactables = [];
-        this.colliders = [];
-        this.npcAvatars = [];
+        this.pinSprites = [];
+        this.miniTrotros = [];
     }
 
-    loadDistrict(districtId) {
+    buildIsometricAccra() {
         this.clearWorld();
-        this.currentDistrict = districtId;
 
-        if (districtId === 'osu') {
-            this.buildOsuOxfordStreet();
-        } else if (districtId === 'east_legon') {
-            this.buildEastLegon();
-        } else if (districtId === 'labadi') {
-            this.buildLabadiBeach();
-        } else if (districtId === 'jamestown') {
-            this.buildJamestown();
-        } else if (districtId === 'penthouse') {
-            this.buildPenthouse();
-        }
-    }
+        // 1. Terrain Landmass (North / Central Accra)
+        const landGeo = new THREE.PlaneGeometry(90, 60);
+        const land = new THREE.Mesh(landGeo, this.materials.terrainGrass);
+        land.rotation.x = -Math.PI / 2;
+        land.position.set(0, 0, -10);
+        land.receiveShadow = true;
+        this.environmentGroup.add(land);
 
-    // --- DISTRICT 1: OSU OXFORD STREET & BLOOM BAR ---
-    buildOsuOxfordStreet() {
-        // Ground Pavement & Street
-        const groundGeo = new THREE.PlaneGeometry(60, 60);
-        const ground = new THREE.Mesh(groundGeo, this.materials.sidewalk);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        this.environmentGroup.add(ground);
-
-        // Asphalt Main Street
-        const roadGeo = new THREE.PlaneGeometry(12, 60);
-        const road = new THREE.Mesh(roadGeo, this.materials.road);
-        road.rotation.x = -Math.PI / 2;
-        road.position.set(-8, 0.02, 0);
-        road.receiveShadow = true;
-        this.environmentGroup.add(road);
-
-        // Road yellow center dashes
-        for (let z = -26; z <= 26; z += 6) {
-            const stripeGeo = new THREE.PlaneGeometry(0.3, 3);
-            const stripe = new THREE.Mesh(stripeGeo, this.materials.curb);
-            stripe.rotation.x = -Math.PI / 2;
-            stripe.position.set(-8, 0.04, z);
-            this.environmentGroup.add(stripe);
-        }
-
-        // Bloom Bar Complex
-        const bloomBase = new THREE.Mesh(new THREE.BoxGeometry(16, 5, 20), this.materials.whiteWall);
-        bloomBase.position.set(12, 2.5, -2);
-        bloomBase.castShadow = true;
-        this.environmentGroup.add(bloomBase);
-
-        // Rooftop Pergola & DJ Lounge
-        const roofFloor = new THREE.Mesh(new THREE.BoxGeometry(15, 0.3, 19), this.materials.wood);
-        roofFloor.position.set(12, 5.15, -2);
-        this.environmentGroup.add(roofFloor);
-
-        // Neon Sign: "BLOOM BAR OSU"
-        const signBoard = new THREE.Mesh(new THREE.BoxGeometry(8, 1.2, 0.2), this.materials.neonPink);
-        signBoard.position.set(12, 5.8, 7.8);
-        this.environmentGroup.add(signBoard);
-
-        // DJ Stage & Turntables (Interactable Gig)
-        const djBooth = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.1, 1.2), this.materials.neonGold);
-        djBooth.position.set(12, 5.7, 0);
-        this.environmentGroup.add(djBooth);
-
-        this.addInteractable(djBooth, {
-            type: "gig",
-            title: "🎧 Bloom Bar DJ Gig",
-            desc: "Perform an Afrobeats live DJ set for the crowd!",
-            reward: 250,
-            energyCost: 20
-        });
-
-        // Street Food Stall: "Kelewele & Waakye Spot"
-        const stall = new THREE.Mesh(new THREE.BoxGeometry(3, 2.4, 2.4), this.materials.wood);
-        stall.position.set(1, 1.2, -8);
-        this.environmentGroup.add(stall);
-
-        const stallRoof = new THREE.Mesh(new THREE.ConeGeometry(2.4, 1.2, 4), this.materials.brick);
-        stallRoof.position.set(1, 3.0, -8);
-        stallRoof.rotation.y = Math.PI / 4;
-        this.environmentGroup.add(stallRoof);
-
-        this.addInteractable(stall, {
-            type: "food",
-            title: "🍛 Auntie Muni Waakye & Kelewele",
-            desc: "Replenish hunger and boost energy with hot fried plantain & Waakye!",
-            cost: 25,
-            energyGain: 40,
-            hungerGain: 60
-        });
-
-        // Palm Trees
-        this.createPalmTree(2, 0, 8);
-        this.createPalmTree(2, 0, -16);
-        this.createPalmTree(18, 0, 10);
-
-        // Osu Colliders
-        this.addBoxCollider(3.5, 20.5, -12.5, 8.5); // Bloom Bar building
-        this.addBoxCollider(-0.8, 2.8, -9.5, -6.5);  // Food stall
-
-        // Story NPCs in Osu
-        this.createNPC('auntie_muni', '🍛 Auntie Muni', 'Queen of Waakye', -1.5, 0, -5.5, 0.4, {
-            skinTone: 0x2b170c,
-            hairStyle: 'braids',
-            outfit: 'kente',
-            topColor: 0xf59e0b,
-            pantsColor: 0x1e293b,
-            shoesColor: 0xffffff
-        });
-
-        this.createNPC('dj_switch', '🎧 DJ Switch', 'Bloom Bar DJ', 12, 5.15, 1.2, -Math.PI / 2, {
-            skinTone: 0x4a2a18,
-            hairStyle: 'dreads',
-            outfit: 'streetwear',
-            topColor: 0x06b6d4,
-            pantsColor: 0x111111,
-            shoesColor: 0xffffff,
-            accessories: ['sunglasses', 'gold_chain']
-        });
-
-        this.createNPC('sly_nana', '🕶️ Sly Nana', 'Oxford St Boss', -3.5, 0, 1.5, Math.PI / 4, {
-            skinTone: 0x2b170c,
-            hairStyle: 'fade',
-            outfit: 'suit',
-            topColor: 0x111111,
-            pantsColor: 0x0f172a,
-            shoesColor: 0x000000,
-            accessories: ['sunglasses', 'gold_chain']
-        });
-    }
-
-    // --- DISTRICT 2: EAST LEGON LUXURY MANSIONS ---
-    buildEastLegon() {
-        const groundGeo = new THREE.PlaneGeometry(60, 60);
-        const ground = new THREE.Mesh(groundGeo, this.materials.grass);
-        ground.rotation.x = -Math.PI / 2;
-        ground.receiveShadow = true;
-        this.environmentGroup.add(ground);
-
-        // Paved luxury driveway
-        const driveway = new THREE.Mesh(new THREE.PlaneGeometry(16, 40), this.materials.sidewalk);
-        driveway.rotation.x = -Math.PI / 2;
-        driveway.position.set(-12, 0.02, 0);
-        this.environmentGroup.add(driveway);
-
-        // Glass Tech Hub & Villa
-        const mansion = new THREE.Mesh(new THREE.BoxGeometry(18, 7, 16), this.materials.whiteWall);
-        mansion.position.set(8, 3.5, -6);
-        mansion.castShadow = true;
-        this.environmentGroup.add(mansion);
-
-        // Glass facade
-        const glassWall = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 0.2), this.materials.glass);
-        glassWall.position.set(8, 3.5, 2.1);
-        this.environmentGroup.add(glassWall);
-
-        // Luxury Swimming Pool
-        const poolBorder = new THREE.Mesh(new THREE.BoxGeometry(8, 0.4, 12), this.materials.sidewalk);
-        poolBorder.position.set(8, 0.2, 10);
-        this.environmentGroup.add(poolBorder);
-
-        const poolWater = new THREE.Mesh(new THREE.BoxGeometry(7, 0.3, 11), this.materials.poolWater);
-        poolWater.position.set(8, 0.3, 10);
-        this.environmentGroup.add(poolWater);
-
-        // Tech Startup Desk / Work Station (Interactable Gig)
-        const techDesk = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1.2, 1.5), this.materials.whiteWall);
-        techDesk.position.set(-6, 0.6, 2);
-        this.environmentGroup.add(techDesk);
-
-        this.addInteractable(techDesk, {
-            type: "gig",
-            title: "💻 East Legon Tech Hub",
-            desc: "Code high-yield FinTech apps for mobile payments!",
-            reward: 500,
-            energyCost: 35
-        });
-
-        // Palm trees lining driveway
-        this.createPalmTree(-3, 0, -10);
-        this.createPalmTree(-3, 0, 4);
-        this.createPalmTree(-3, 0, 16);
-
-        // East Legon Colliders
-        this.addBoxCollider(-1.5, 17.5, -14.5, 2.5); // Luxury Villa / Tech Hub
-        this.addBoxCollider(-7.5, -4.5, 1.0, 3.0);   // Workstation Desk
-
-        // Story NPCs in East Legon
-        this.createNPC('dr_kobby', '💻 Dr. Kobby', 'FinTech Founder', -4.8, 0, 2.5, 0.2, {
-            skinTone: 0x3d2314,
-            hairStyle: 'fade',
-            outfit: 'suit',
-            topColor: 0x1e293b,
-            pantsColor: 0x0f172a,
-            shoesColor: 0x000000,
-            accessories: ['gold_chain']
-        });
-    }
-
-    // --- DISTRICT 3: LABADI BEACH ---
-    buildLabadiBeach() {
-        // Golden Sandy Beach
-        const beach = new THREE.Mesh(new THREE.PlaneGeometry(60, 40), this.materials.sand);
+        // 2. Coastline Beach (Labadi Sand strip)
+        const beachGeo = new THREE.PlaneGeometry(90, 8);
+        const beach = new THREE.Mesh(beachGeo, this.materials.terrainSand);
         beach.rotation.x = -Math.PI / 2;
-        beach.position.z = 8;
+        beach.position.set(0, 0.02, 20);
         beach.receiveShadow = true;
         this.environmentGroup.add(beach);
 
-        // Ocean Waves
-        const ocean = new THREE.Mesh(new THREE.PlaneGeometry(60, 24), this.materials.ocean);
+        // 3. Gulf of Guinea (Atlantic Ocean)
+        const oceanGeo = new THREE.PlaneGeometry(90, 32);
+        const ocean = new THREE.Mesh(oceanGeo, this.materials.oceanWater);
         ocean.rotation.x = -Math.PI / 2;
-        ocean.position.set(0, 0.05, -20);
+        ocean.position.set(0, 0.04, 38);
         this.environmentGroup.add(ocean);
+        this.oceanMesh = ocean;
 
-        // Boardwalk
-        const boardwalk = new THREE.Mesh(new THREE.BoxGeometry(50, 0.3, 4), this.materials.wood);
-        boardwalk.position.set(0, 0.15, 16);
-        this.environmentGroup.add(boardwalk);
+        // 4. Main Highway Grid (Ring Road, Oxford Street, Independence Ave)
+        this.createRoadNetwork();
 
-        // Beach Bar
-        const bar = new THREE.Mesh(new THREE.BoxGeometry(6, 2.8, 3.5), this.materials.wood);
-        bar.position.set(0, 1.4, 4);
-        this.environmentGroup.add(bar);
+        // 5. Build Iconic Accra 3D Landmarks
+        this.buildLandmarks();
 
-        this.addInteractable(bar, {
-            type: "chill",
-            title: "🍹 Labadi Coconut & Cocktail Bar",
-            desc: "Chill by the ocean breeze, recharge energy and relax!",
-            cost: 15,
-            energyGain: 50,
-            hungerGain: 30
-        });
+        // 6. Spawn Animated Mini Trotros along the roads
+        this.spawnMiniTrotros();
 
-        // Coconut Palms on sand
-        this.createPalmTree(-14, 0, 8);
-        this.createPalmTree(14, 0, 6);
-        this.createPalmTree(-22, 0, 2);
-        this.createPalmTree(22, 0, 10);
-
-        // Labadi Beach Colliders
-        this.addBoxCollider(-3.3, 3.3, 2.0, 6.0); // Beach Bar
-
-        // Story NPCs in Labadi Beach
-        this.createNPC('serwaa', '💎 Serwaa', 'Fashion Executive', 3.0, 0.15, 6.0, -0.4, {
-            skinTone: 0x5c351f,
-            hairStyle: 'braids',
-            outfit: 'kente',
-            topColor: 0xec4899,
-            pantsColor: 0xffffff,
-            shoesColor: 0xffffff,
-            accessories: ['sunglasses', 'gold_chain']
-        });
+        // 7. Ambient Palm Trees & Streetlights
+        this.scatterPalmTrees();
     }
 
-    // --- DISTRICT 4: JAMESTOWN & LIGHTHOUSE ---
-    buildJamestown() {
-        // Cobblestone / Sandy ground
-        const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), this.materials.sidewalk);
-        ground.rotation.x = -Math.PI / 2;
-        this.environmentGroup.add(ground);
+    createRoadNetwork() {
+        // Main Coastal Highway (East-West)
+        const coastRoad = new THREE.Mesh(new THREE.PlaneGeometry(90, 6), this.materials.roadAsphalt);
+        coastRoad.rotation.x = -Math.PI / 2;
+        coastRoad.position.set(0, 0.03, 16);
+        this.environmentGroup.add(coastRoad);
 
-        // Iconic Red & White Striped Jamestown Lighthouse
-        const towerGroup = new THREE.Group();
-        towerGroup.position.set(12, 0, -8);
-        this.environmentGroup.add(towerGroup);
+        // Ring Road (Central East-West)
+        const ringRoad = new THREE.Mesh(new THREE.PlaneGeometry(90, 6), this.materials.roadAsphalt);
+        ringRoad.rotation.x = -Math.PI / 2;
+        ringRoad.position.set(0, 0.03, -10);
+        this.environmentGroup.add(ringRoad);
 
-        const stripeHeight = 2.5;
-        for (let i = 0; i < 6; i++) {
-            const seg = new THREE.Mesh(
-                new THREE.CylinderGeometry(2.0 - i * 0.15, 2.2 - i * 0.15, stripeHeight, 16),
-                i % 2 === 0 ? this.materials.brick : this.materials.whiteWall
-            );
-            seg.position.y = i * stripeHeight + stripeHeight / 2;
-            towerGroup.add(seg);
+        // North Expressway (Liberation Road / Airport)
+        const northRoad = new THREE.Mesh(new THREE.PlaneGeometry(90, 6), this.materials.roadAsphalt);
+        northRoad.rotation.x = -Math.PI / 2;
+        northRoad.position.set(0, 0.03, -32);
+        this.environmentGroup.add(northRoad);
+
+        // Vertical Avenues (Oxford St, High St, Independence Ave)
+        const avenueXCoords = [-26, -6, 14, 32];
+        for (const x of avenueXCoords) {
+            const ave = new THREE.Mesh(new THREE.PlaneGeometry(5, 54), this.materials.roadAsphalt);
+            ave.rotation.x = -Math.PI / 2;
+            ave.position.set(x, 0.035, -8);
+            this.environmentGroup.add(ave);
         }
 
-        // Lantern room
-        const lantern = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 2, 16), this.materials.neonGold);
-        lantern.position.y = 6 * stripeHeight + 1;
-        towerGroup.add(lantern);
+        // Yellow Road Center Dashes
+        for (let x = -40; x <= 40; x += 6) {
+            const dash1 = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 0.3), this.materials.roadStripe);
+            dash1.rotation.x = -Math.PI / 2;
+            dash1.position.set(x, 0.05, 16);
+            this.environmentGroup.add(dash1);
 
-        // Bukom Boxing Gym Ring
-        const ringBase = new THREE.Mesh(new THREE.BoxGeometry(7, 0.6, 7), this.materials.wood);
-        ringBase.position.set(-8, 0.3, 0);
-        this.environmentGroup.add(ringBase);
-
-        // 4 Corner Posts
-        const postGeo = new THREE.CylinderGeometry(0.08, 0.08, 2.2, 8);
-        const corners = [[-11, -3], [-5, -3], [-11, 3], [-5, 3]];
-        corners.forEach(([x, z]) => {
-            const post = new THREE.Mesh(postGeo, this.materials.brick);
-            post.position.set(x, 1.4, z);
-            this.environmentGroup.add(post);
-        });
-
-        this.addInteractable(ringBase, {
-            type: "gig",
-            title: "🥊 Bukom Boxing Champion Spar",
-            desc: "Train in the famous Jamestown boxing ring to earn big Cedis and respect!",
-            reward: 350,
-            energyCost: 25
-        });
-
-        // Jamestown Colliders
-        this.addCircleCollider(12, -8, 2.5);          // Red & White Lighthouse
-        this.addBoxCollider(-11.5, -4.5, -3.5, 3.5);  // Boxing Gym Ring
-
-        // Story NPCs in Jamestown
-        this.createNPC('coach_bukom', '🥊 Coach Bukom', 'Ga Boxing Trainer', -4.0, 0, 0, Math.PI / 2, {
-            skinTone: 0x3d2314,
-            hairStyle: 'fade',
-            outfit: 'streetwear',
-            topColor: 0xd97706,
-            pantsColor: 0x0f172a,
-            shoesColor: 0xffffff
-        });
-
-        this.createNPC('the_bulldozer', '💪 The Bulldozer', 'Bukom Champion', -8.0, 0.6, 0, 0, {
-            skinTone: 0x2b170c,
-            hairStyle: 'fade',
-            outfit: 'streetwear',
-            topColor: 0xdc2626,
-            pantsColor: 0x991b1b,
-            shoesColor: 0x000000,
-            accessories: ['gold_chain']
-        });
+            const dash2 = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 0.3), this.materials.roadStripe);
+            dash2.rotation.x = -Math.PI / 2;
+            dash2.position.set(x, 0.05, -10);
+            this.environmentGroup.add(dash2);
+        }
     }
 
-    // --- DISTRICT 5: MY PENTHOUSE APARTMENT ---
-    buildPenthouse() {
-        // Parquet Luxury Floor
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(24, 24), this.materials.floorParquet);
-        floor.rotation.x = -Math.PI / 2;
-        this.environmentGroup.add(floor);
-
-        // Walls
-        const backWall = new THREE.Mesh(new THREE.BoxGeometry(24, 6, 0.4), this.materials.whiteWall);
-        backWall.position.set(0, 3, -12);
-        this.environmentGroup.add(backWall);
-
-        // Floor-to-ceiling panoramic glass balcony overlooking Accra
-        const glassWindow = new THREE.Mesh(new THREE.BoxGeometry(24, 6, 0.2), this.materials.glass);
-        glassWindow.position.set(0, 3, 12);
-        this.environmentGroup.add(glassWindow);
-
-        // Luxury Velvet L-Shape Sofa
-        const sofa = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.9, 2), this.materials.sofaVelvet);
-        sofa.position.set(0, 0.45, -6);
-        this.environmentGroup.add(sofa);
-
-        // Wardrobe Dressing Closet (Interactable Drip Customization)
-        const wardrobe = new THREE.Mesh(new THREE.BoxGeometry(2.4, 4.2, 1.2), this.materials.wood);
-        wardrobe.position.set(-9, 2.1, -11);
-        this.environmentGroup.add(wardrobe);
-
-        this.addInteractable(wardrobe, {
-            type: "wardrobe",
-            title: "👗 VIP Wardrobe Closet",
-            desc: "Customize your Kente drip, hairstyles, and luxury accessories!"
+    buildLandmarks() {
+        // 1. Auntie Muni Waakye (Oxford St, Osu)
+        this.createBuilding('auntie_muni', 'Auntie Muni', '🍛', -16, 0, -2, {
+            w: 4, h: 2.2, d: 3,
+            colorMat: this.materials.buildingKenteYellow,
+            roofColor: 0xef4444,
+            badgeLabel: 'Auntie Muni Waakye'
         });
 
-        // King Size Bed (Instant Energy Sleep)
-        const bed = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.8, 4.5), this.materials.whiteWall);
-        bed.position.set(8, 0.4, -8);
-        this.environmentGroup.add(bed);
-
-        this.addInteractable(bed, {
-            type: "sleep",
-            title: "🛏️ Master Bed Rest",
-            desc: "Sleep in your penthouse to fully restore 100% Energy!"
+        // 2. Bloom Bar (Osu Nightlife)
+        this.createBuilding('bloom_bar', 'Bloom Bar', '🪩', -20, 0, 7, {
+            w: 6, h: 3.5, d: 6,
+            colorMat: this.materials.buildingModern,
+            neonMat: this.materials.neonPink,
+            badgeLabel: 'Bloom Bar'
         });
 
-        // Penthouse Colliders
-        this.addBoxCollider(-12, 12, -12.5, -11.5);    // Back wall
-        this.addBoxCollider(-12, 12, 11.5, 12.5);      // Balcony glass
-        this.addBoxCollider(-2.4, 2.4, -7.2, -4.8);    // Velvet sofa
-        this.addBoxCollider(6.0, 10.0, -10.5, -5.5);   // King bed
-        this.addBoxCollider(-10.4, -7.6, -11.8, -10.2);// Wardrobe
-
-        // Story NPCs in Penthouse
-        this.createNPC('serwaa', '👑 Serwaa', 'Your Partner', 2.0, 0, -4.5, -0.4, {
-            skinTone: 0x5c351f,
-            hairStyle: 'braids',
-            outfit: 'kente',
-            topColor: 0xfbbf24,
-            pantsColor: 0x1e293b,
-            shoesColor: 0xffffff,
-            accessories: ['gold_chain']
+        // 3. Bukom Boxing Arena (Jamestown)
+        this.createBuilding('bukom_boxing', 'Bukom Boxing', '🥊', -35, 0, 6, {
+            w: 7, h: 4, d: 7,
+            colorMat: this.materials.buildingBrick,
+            badgeLabel: 'Bukom Arena'
         });
 
-        this.createNPC('sly_nana', '⚡ Sly Nana', 'Surrendered Boss', -2.0, 0, -2.0, 0.4, {
-            skinTone: 0x2b170c,
-            hairStyle: 'fade',
-            outfit: 'suit',
-            topColor: 0x111111,
-            pantsColor: 0x0f172a,
-            shoesColor: 0x000000
+        // 4. MEST Tech Hub (East Legon Silicon Accra)
+        this.createBuilding('mest_tech', 'MEST Tech', '💡', 22, 0, -22, {
+            w: 6, h: 9, d: 6,
+            colorMat: this.materials.glassBlue,
+            badgeLabel: 'MEST Tech Hub'
         });
+
+        // 5. Circle Neoplan Station (Trotro HQ)
+        this.createBuilding('circle_trotro', 'Circle Trotro', '🚌', -6, 0, -22, {
+            w: 8, h: 2.8, d: 7,
+            colorMat: this.materials.buildingKenteYellow,
+            badgeLabel: 'Trotro Terminal'
+        });
+
+        // 6. Accra City Hall (AMA / Mayor of Accra)
+        this.createBuilding('city_hall', 'City Hall', '🏛️', 4, 0, -2, {
+            w: 7, h: 5.5, d: 6,
+            colorMat: this.materials.buildingWhite,
+            pillared: true,
+            badgeLabel: 'Accra City Hall'
+        });
+
+        // 7. Labadi Beach & Tawala (Beach Raves)
+        this.createBuilding('labadi_beach', 'Labadi Beach', '🏖️', 20, 0, 18, {
+            w: 6, h: 2, d: 5,
+            colorMat: this.materials.terrainSand,
+            badgeLabel: 'Labadi Beach'
+        });
+
+        // 8. Makola Market (Commercial Bazaar)
+        this.createBuilding('makola_market', 'Makola Market', '🛒', -35, 0, -10, {
+            w: 7, h: 3, d: 8,
+            colorMat: this.materials.buildingKenteYellow,
+            badgeLabel: 'Makola Market'
+        });
+
+        // 9. Accra Sports Stadium
+        this.createBuilding('stadium', 'Sports Stadium', '⚽', -6, 0, 7, {
+            w: 9, h: 3.8, d: 7,
+            colorMat: this.materials.buildingWhite,
+            badgeLabel: 'Accra Stadium'
+        });
+
+        // 10. Kempinski Hotel Gold Coast City
+        this.createBuilding('kempinski', 'Kempinski Hotel', '🏨', 8, 0, 6, {
+            w: 8, h: 7, d: 7,
+            colorMat: this.materials.buildingWhite,
+            badgeLabel: 'Kempinski Hotel'
+        });
+
+        // 11. High Court of Ghana
+        this.createBuilding('high_court', 'High Court', '⚖️', 14, 0, -2, {
+            w: 6, h: 4.8, d: 5,
+            colorMat: this.materials.buildingWhite,
+            pillared: true,
+            badgeLabel: 'High Court'
+        });
+
+        // 12. Sister Akua's Salon
+        this.createBuilding('salon', "Akua's Salon", '💇🏾‍♀️', -10, 0, -2, {
+            w: 3.5, h: 2.4, d: 3,
+            colorMat: this.materials.buildingWhite,
+            badgeLabel: "Akua's Salon"
+        });
+
+        // 13. Papaye Fast Food
+        this.createBuilding('papaye', 'Papaye', '🍕', 2, 0, -18, {
+            w: 4.5, h: 2.8, d: 4,
+            colorMat: this.materials.buildingBrick,
+            badgeLabel: 'Papaye Fast Food'
+        });
+
+        // 14. Sea Plots Billboard (Floating on Gulf of Guinea)
+        this.createSeaPlotsBillboard();
     }
 
-    createPalmTree(x, y, z) {
-        const treeGroup = new THREE.Group();
-        treeGroup.position.set(x, y, z);
+    createBuilding(id, name, emoji, x, y, z, config) {
+        const group = new THREE.Group();
+        group.position.set(x, y, z);
 
-        // Curved Trunk
-        const trunkGeo = new THREE.CylinderGeometry(0.18, 0.32, 5, 8);
-        const trunk = new THREE.Mesh(trunkGeo, this.materials.wood);
-        trunk.position.y = 2.5;
-        trunk.rotation.z = (Math.random() - 0.5) * 0.2;
-        treeGroup.add(trunk);
+        // Building Body
+        const geo = new THREE.BoxGeometry(config.w, config.h, config.d);
+        const mesh = new THREE.Mesh(geo, config.colorMat);
+        mesh.position.y = config.h / 2;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
 
-        // Palm Fronds
-        for (let i = 0; i < 7; i++) {
-            const angle = (i / 7) * Math.PI * 2;
-            const frondGeo = new THREE.ConeGeometry(0.8, 3.2, 4);
-            const frond = new THREE.Mesh(frondGeo, this.materials.palmLeaf);
-            frond.position.set(Math.cos(angle) * 1.2, 4.8, Math.sin(angle) * 1.2);
-            frond.rotation.set(Math.sin(angle) * 1.1, angle, Math.cos(angle) * 1.1);
-            treeGroup.add(frond);
+        // Pillared front if Civic
+        if (config.pillared) {
+            const pillarGeo = new THREE.CylinderGeometry(0.2, 0.2, config.h, 8);
+            for (let px = -config.w / 2 + 0.4; px <= config.w / 2 - 0.4; px += 1.2) {
+                const pillar = new THREE.Mesh(pillarGeo, this.materials.buildingWhite);
+                pillar.position.set(px, config.h / 2, config.d / 2 + 0.3);
+                group.add(pillar);
+            }
         }
 
-        this.environmentGroup.add(treeGroup);
+        // Roof Accent / Pergola
+        if (config.neonMat) {
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(config.w + 0.4, 0.3, config.d + 0.4), config.neonMat);
+            roof.position.y = config.h + 0.15;
+            group.add(roof);
+        }
+
+        this.environmentGroup.add(group);
+
+        // Floating 3D Circular Pin Bubble (Lagos Life Style)
+        const pinSprite = this.createFloatingPinSprite(emoji, config.badgeLabel || name, config.h + 2.0);
+        group.add(pinSprite);
+        this.pinSprites.push({ sprite: pinSprite, baseY: config.h + 2.0, timeOffset: Math.random() * Math.PI * 2 });
+
+        // Click Hitbox for venue interaction
+        const hitbox = new THREE.Mesh(
+            new THREE.BoxGeometry(config.w + 1, config.h + 3.5, config.d + 1),
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hitbox.position.y = (config.h + 3.5) / 2;
+        hitbox.userData = { type: 'venue', venueId: id, name, emoji };
+        group.add(hitbox);
+        this.interactables.push(hitbox);
     }
 
-    addInteractable(mesh, data) {
-        mesh.userData = data;
-        this.interactables.push(mesh);
+    createFloatingPinSprite(emoji, label, yPos) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 160;
+        const ctx = canvas.getContext('2d');
+
+        // Draw Circular Bubble
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(128, 56, 44, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Shadow & Border
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Emoji
+        ctx.font = '40px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(emoji, 128, 56);
+
+        // Label Pill underneath
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.beginPath();
+        ctx.roundRect(14, 110, 228, 42, 21);
+        ctx.fill();
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 18px system-ui, sans-serif';
+        ctx.fillText(label, 128, 132);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        const mat = new THREE.SpriteMaterial({ map: tex, depthTest: false });
+        const sprite = new THREE.Sprite(mat);
+        sprite.position.set(0, yPos, 0);
+        sprite.scale.set(4.0, 2.5, 1);
+        return sprite;
+    }
+
+    createSeaPlotsBillboard() {
+        const group = new THREE.Group();
+        group.position.set(2, 0, 36);
+
+        // Floating wooden barge
+        const barge = new THREE.Mesh(new THREE.BoxGeometry(10, 0.6, 6), this.materials.palmBark);
+        barge.position.y = 0.3;
+        group.add(barge);
+
+        // Billboard Board
+        const board = new THREE.Mesh(new THREE.BoxGeometry(8, 3.5, 0.3), this.materials.buildingModern);
+        board.position.set(0, 3.0, 0);
+        group.add(board);
+
+        // Billboard Canvas Texture
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 512, 256);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, 504, 248);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 36px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🌊 SEA & BEACH PLOTS', 256, 70);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = 'bold 24px system-ui, sans-serif';
+        ctx.fillText('Advertise on Accra Water!', 256, 120);
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 22px system-ui, sans-serif';
+        ctx.fillText('Tap to Lease Plot or Post Ad ⛵', 256, 175);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        const screenMat = new THREE.MeshBasicMaterial({ map: tex });
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(7.6, 3.2), screenMat);
+        screen.position.set(0, 3.0, 0.17);
+        group.add(screen);
+
+        this.environmentGroup.add(group);
+
+        const hitbox = new THREE.Mesh(
+            new THREE.BoxGeometry(10, 6, 6),
+            new THREE.MeshBasicMaterial({ visible: false })
+        );
+        hitbox.position.y = 3;
+        hitbox.userData = { type: 'venue', venueId: 'sea_plots', name: 'Sea Plots', emoji: '🌊' };
+        group.add(hitbox);
+        this.interactables.push(hitbox);
+    }
+
+    spawnMiniTrotros() {
+        // Create 4 miniature Trotros cruising along the avenues
+        const trotroConfigs = [
+            { x: -38, z: 16, dx: 0.12, dz: 0, minX: -42, maxX: 42, color: 0xf59e0b },
+            { x: 38, z: -10, dx: -0.15, dz: 0, minX: -42, maxX: 42, color: 0xffffff },
+            { x: -6, z: -30, dx: 0, dz: 0.14, minZ: -32, maxZ: 14, color: 0xf59e0b },
+            { x: 14, z: 12, dx: 0, dz: -0.16, minZ: -32, maxZ: 14, color: 0xffffff }
+        ];
+
+        for (const cfg of trotroConfigs) {
+            const bus = new THREE.Group();
+            bus.position.set(cfg.x, 0.35, cfg.z);
+
+            // Bus Body
+            const bodyMat = new THREE.MeshLambertMaterial({ color: cfg.color });
+            const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.1, 1.2), bodyMat);
+            bus.add(body);
+
+            // Roof
+            const roof = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.2, 1.2), this.materials.buildingWhite);
+            roof.position.y = 0.65;
+            bus.add(roof);
+
+            // Wheels
+            const wheelGeo = new THREE.CylinderGeometry(0.25, 0.25, 0.2, 8);
+            wheelGeo.rotateZ(Math.PI / 2);
+            const wheelMat = this.materials.roadAsphalt;
+            const w1 = new THREE.Mesh(wheelGeo, wheelMat);
+            w1.position.set(-0.7, -0.3, 0.6);
+            const w2 = new THREE.Mesh(wheelGeo, wheelMat);
+            w2.position.set(0.7, -0.3, 0.6);
+            const w3 = new THREE.Mesh(wheelGeo, wheelMat);
+            w3.position.set(-0.7, -0.3, -0.6);
+            const w4 = new THREE.Mesh(wheelGeo, wheelMat);
+            w4.position.set(0.7, -0.3, -0.6);
+            bus.add(w1, w2, w3, w4);
+
+            this.environmentGroup.add(bus);
+            this.miniTrotros.push({ group: bus, config: cfg });
+        }
+    }
+
+    scatterPalmTrees() {
+        const treeLocs = [
+            [-32, 20], [-10, 20], [8, 20], [28, 20], [38, 20],
+            [-22, 1], [-2, 1], [18, 1],
+            [-28, -25], [10, -25], [28, -15]
+        ];
+
+        for (const [x, z] of treeLocs) {
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.26, 3.2, 6), this.materials.palmBark);
+            trunk.position.set(x, 1.6, z);
+            this.environmentGroup.add(trunk);
+
+            const crown = new THREE.Mesh(new THREE.ConeGeometry(1.6, 2.2, 6), this.materials.palmLeaves);
+            crown.position.set(x, 3.8, z);
+            this.environmentGroup.add(crown);
+        }
+    }
+
+    update(delta) {
+        const time = Date.now() * 0.002;
+
+        // 1. Gently animate floating pin bubbles (hovering effect)
+        for (const pin of this.pinSprites) {
+            pin.sprite.position.y = pin.baseY + Math.sin(time + pin.timeOffset) * 0.25;
+        }
+
+        // 2. Animate mini Trotros driving along Accra streets
+        for (const trotro of this.miniTrotros) {
+            const { group, config } = trotro;
+            group.position.x += config.dx;
+            group.position.z += config.dz;
+
+            if (config.dx > 0 && group.position.x > config.maxX) group.position.x = config.minX;
+            if (config.dx < 0 && group.position.x < config.minX) group.position.x = config.maxX;
+            if (config.dz > 0 && group.position.z > config.maxZ) group.position.z = config.minZ;
+            if (config.dz < 0 && group.position.z < config.minZ) group.position.z = config.maxZ;
+        }
+
+        // 3. Gentle ocean wave animation
+        if (this.oceanMesh) {
+            this.oceanMesh.position.y = 0.04 + Math.sin(time * 0.8) * 0.04;
+        }
     }
 }

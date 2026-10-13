@@ -3,9 +3,10 @@ dist/
 *.log
 .DS_Store
 debug_browser.mjs
-test_emulator.mjs
-test_accralife_3d.mjs
-test_touch_and_features.mjs
+test_*.mjs
+inspect_*.mjs
+extract_*.mjs
+analyze_*.mjs
 render_icon.mjs
 *.png
 !icon.png
@@ -13,3 +14,4 @@ render_icon.mjs
 .firebase/
 __pycache__/
 *.pyc
+
