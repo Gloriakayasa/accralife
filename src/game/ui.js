@@ -1,5 +1,6 @@
 // Accra Life - User Interface & Full Life-Sim Management Engine (Lagos Life Clone)
-// Features: Isometric City Top Bar, Mayor Broadcast, Origin Selector, Trotro Empire, Housing & Land Guards, Venues
+// Features: Sleek Lagos Life Top Bar & Broadcast Banner, Complete Hustle Hub,
+// Trotro Transport Tycoon, Housing & Land Guards, Mayor Elections, ChalePhone & MoMo, Wardrobe Drip
 
 import { gameState, ORIGINS, TROTRO_MODELS, TROTRO_ROUTES, ACCRA_HOUSING, MAYOR_POLICIES } from './state.js';
 import { audio } from './audio.js';
@@ -9,13 +10,14 @@ import { storyEngine, STORY_CHAPTERS, STORY_QUESTS } from './story.js';
 export class UIManager {
     constructor(engine) {
         this.engine = engine;
+        this.activePhoneTab = 'chat';
         this.initHUD();
         this.initEventListeners();
 
         // Subscribe to game state updates
         gameState.subscribe((data) => this.renderHUD(data));
 
-        // Check if origin selected; if not, prompt on start
+        // Prompt origin selector on startup if none chosen
         setTimeout(() => {
             if (!gameState.data.origin) {
                 this.openOriginModal();
@@ -33,11 +35,11 @@ export class UIManager {
 
         hud.innerHTML = `
             <!-- Top City Bar & Live Ticker (Lagos Life Style) -->
-            <header id="hud-top" style="flex-direction: column; gap: 6px; padding: 10px 16px;">
+            <header id="hud-top" style="flex-direction: column; gap: 5px; padding: 8px 14px;">
                 <div style="display: flex; width: 100%; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                    <!-- Brand & Online Counts -->
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="hud-profile" onclick="window.ui.openOriginModal()" title="View Origin & Social Status">
+                    <!-- Brand Pill & Online Status -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="hud-profile" onclick="window.ui.openOriginModal()" title="View Accra Life Profile & Origin">
                             <div class="profile-avatar-circle" id="hud-avatar-circle">🇬🇭</div>
                             <div class="profile-info">
                                 <div class="profile-name" id="hud-player-name">Kwame</div>
@@ -45,18 +47,19 @@ export class UIManager {
                             </div>
                         </div>
 
+                        <!-- Live Ticker Pills -->
                         <div class="city-stats-bar">
-                            <span class="city-stat-pill online" title="Players live in Accra">🟢 16.4k online</span>
-                            <span class="city-stat-pill" title="Total City Visits">👀 2.8m visits</span>
+                            <span class="city-stat-pill online" title="Active Players in Accra">🟢 28.5k online</span>
+                            <span class="city-stat-pill" title="Total City Visits">👀 3.2m visits</span>
                             <span class="city-stat-pill" onclick="window.ui.openMayorModal()" id="hud-mayor-pill" title="Mayor of Accra">🏛️ Mayor @Kwame</span>
-                            <span class="city-stat-pill" onclick="window.ui.openSeaPlotsModal()" title="Sea & Beach Plots">🌊 Beach Plots</span>
+                            <span class="city-stat-pill" onclick="window.ui.openSeaPlotsModal()" title="Atlantic Beach Plots">🌊 Beach Plots</span>
                             <span class="city-stat-pill" onclick="window.ui.openHousingModal()" title="Housing Market">🏘️ 450 homes</span>
                         </div>
                     </div>
 
-                    <!-- Currencies & Stats Pills -->
+                    <!-- Currencies & Action Buttons -->
                     <div class="hud-currencies">
-                        <div class="currency-pill cedis" onclick="window.ui.openMoMoShop()" title="MTN MoMo Cash">
+                        <div class="currency-pill cedis" onclick="window.ui.openMoMoShop()" title="MTN Mobile Money Balance">
                             <span class="currency-icon">🪙</span>
                             <span id="hud-cedis-val">₵6,000</span>
                             <span class="currency-add">+</span>
@@ -68,7 +71,7 @@ export class UIManager {
                             <span class="currency-add">+</span>
                         </div>
 
-                        <div class="city-stat-pill" id="hud-origin-pill" onclick="window.ui.openOriginModal()" style="background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fbbf24;">
+                        <div class="city-stat-pill" id="hud-origin-pill" onclick="window.ui.openOriginModal()" style="background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fbbf24; cursor: pointer;">
                             👶🏾 Origin
                         </div>
 
@@ -84,13 +87,13 @@ export class UIManager {
                             🔊
                         </button>
 
-                        <button class="hud-icon-btn" onclick="window.ui.openAccountModal()" title="Cloud Save">
+                        <button class="hud-icon-btn" onclick="window.ui.openAccountModal()" title="Cloud Save / Account">
                             👤
                         </button>
                     </div>
                 </div>
 
-                <!-- Green Mayor Broadcast Banner (Lagos Life Style) -->
+                <!-- Green Mayor Broadcast Announcement Banner (Lagos Life Style) -->
                 <div id="city-mayor-banner" onclick="window.ui.openMayorModal()" title="Tap to view Mayor of Accra & Civic Policies">
                     🏛️ <span id="mayor-banner-text">Mayor @KwameEastLegon: Dumsor is cancelled this week! Waakye subsidies active in Osu!</span>
                 </div>
@@ -106,46 +109,31 @@ export class UIManager {
                 <div class="story-widget-sub" id="story-quest-objective">Talk to Auntie Muni at Waakye Stall</div>
             </div>
 
-            <!-- Bottom Floating Action Navigation Dock -->
-            <nav id="hud-dock" style="gap: 6px; padding: 8px 14px;">
-                <button class="dock-btn" onclick="window.ui.openVenuesModal()">
+            <!-- Bottom Floating Action Navigation Dock (Clean 5-Tab Design) -->
+            <nav id="hud-dock" style="gap: 8px; padding: 8px 16px;">
+                <button class="dock-btn" onclick="window.ui.openVenuesModal()" title="Accra Landmarks Directory">
                     <span class="dock-icon">🗺️</span>
-                    <span class="dock-text">City Venues</span>
+                    <span class="dock-text">City</span>
                 </button>
 
-                <button class="dock-btn" onclick="window.ui.openTrotroEmpireModal()" style="border: 1px solid rgba(245, 158, 11, 0.4);">
-                    <span class="dock-icon">🚌</span>
-                    <span class="dock-text">Trotro Fleet</span>
-                </button>
-
-                <button class="dock-btn" onclick="window.ui.openHousingModal()">
-                    <span class="dock-icon">🏡</span>
-                    <span class="dock-text">Housing</span>
-                </button>
-
-                <button class="dock-btn" onclick="window.ui.openMayorModal()" style="border: 1px solid rgba(16, 185, 129, 0.4);">
-                    <span class="dock-icon">🏛️</span>
-                    <span class="dock-text">Mayor AMA</span>
-                </button>
-
-                <button class="dock-btn dock-btn-work" onclick="window.ui.triggerCurrentGig()">
+                <button class="dock-btn dock-btn-work" onclick="window.ui.openHustleModal()" title="Jobs, Gigs & Careers">
                     <span class="dock-icon">💼</span>
                     <span class="dock-text">Hustle</span>
                 </button>
 
-                <button class="dock-btn dock-btn-story" onclick="window.ui.openStoryJournal()">
-                    <span class="dock-icon">📜</span>
-                    <span class="dock-text">Story</span>
+                <button class="dock-btn" onclick="window.ui.openTrotroEmpireModal()" style="border: 1px solid rgba(245, 158, 11, 0.4);" title="Manage Commercial Fleet">
+                    <span class="dock-icon">🚌</span>
+                    <span class="dock-text">Trotros</span>
                 </button>
 
-                <button class="dock-btn" onclick="window.ui.openWardrobe()">
-                    <span class="dock-icon">👗</span>
-                    <span class="dock-text">Drip Shop</span>
+                <button class="dock-btn" onclick="window.ui.openHousingModal()" title="Housing & Land Guards">
+                    <span class="dock-icon">🏡</span>
+                    <span class="dock-text">Housing</span>
                 </button>
 
-                <button class="dock-btn" onclick="window.ui.openPhoneModal()">
+                <button class="dock-btn" onclick="window.ui.openPhoneModal()" title="ChalePhone, MoMo & SMS">
                     <span class="dock-icon">📱</span>
-                    <span class="dock-text">ChaleApp</span>
+                    <span class="dock-text">Phone</span>
                 </button>
             </nav>
 
@@ -282,76 +270,215 @@ export class UIManager {
         this.renderHUD(gameState.data);
     }
 
-    // --- 2. TROTRO TRANSPORT EMPIRE MODAL ---
+    // --- 2. COMPLETE HUSTLE & CAREER HUB ---
+    openHustleModal() {
+        audio.playTap();
+        const root = document.getElementById('modals-root');
+        if (!root) return;
+
+        const d = gameState.data;
+
+        root.innerHTML = `
+            <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
+                <div class="modal-card" style="max-width: 720px; max-height: 85vh; overflow-y: auto;">
+                    <div class="modal-header">
+                        <div>
+                            <h3 style="margin: 0;">💼 Accra Hustle & Career Hub</h3>
+                            <span style="font-size: 0.8rem; color: #38bdf8;">Energy: ⚡ ${d.energy}/100 • Clout: ✨ ${d.clout} • Level: ${d.level}</span>
+                        </div>
+                        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                    </div>
+
+                    <p style="font-size: 0.85rem; color: #cbd5e1; margin-bottom: 14px;">
+                        Work shifts to earn daily Cedis, build your reputation, and rise from Jamestown street hawker to East Legon business tycoon!
+                    </p>
+
+                    <!-- Section 1: Street Hustles -->
+                    <h4 style="font-size: 0.82rem; color: #f59e0b; text-transform: uppercase; margin-bottom: 8px;">
+                        🌟 Street Hustles (No Experience Required)
+                    </h4>
+                    <div class="venue-action-grid" style="margin-bottom: 16px;">
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('Pure Water Hawking', 180, 15, 10)">
+                            <div class="venue-action-title">🧊 Pure Water Hawking at Circle</div>
+                            <div class="venue-action-desc">Sprint between cars in traffic selling chilled sachet water. Watch out for AMA task force!</div>
+                            <div class="venue-action-cost">+₵180 Cedis • +15 Clout • -10 Energy</div>
+                        </button>
+
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('Trotro Conductor Mate', 280, 25, 15)">
+                            <div class="venue-action-title">🚌 Trotro Conductor (Mate)</div>
+                            <div class="venue-action-desc">Shout "Accra! Kaneshie! Two-two cedis!", collect fares, slap the bus roof: "Master, go!"</div>
+                            <div class="venue-action-cost">+₵280 Cedis • +25 Clout • -15 Energy</div>
+                        </button>
+
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('Auntie Muni Waakye Delivery', 350, 30, 12)">
+                            <div class="venue-action-title">🍛 Auntie Muni Waakye Server</div>
+                            <div class="venue-action-desc">Serve hot waakye with wele and fried fish to hungry civil servants on Oxford Street.</div>
+                            <div class="venue-action-cost">+₵350 Cedis • +30 Clout • -12 Energy</div>
+                        </button>
+
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('Kantamanto Thrift Drip Sorter', 220, 35, 10)">
+                            <div class="venue-action-title">👞 Kantamanto Thrift Sorter</div>
+                            <div class="venue-action-desc">Sort vintage bales at Kantamanto market, find rare vintage drip for East Legon clients.</div>
+                            <div class="venue-action-cost">+₵220 Cedis • +35 Clout • -10 Energy</div>
+                        </button>
+                    </div>
+
+                    <!-- Section 2: Creative & Entertainment -->
+                    <h4 style="font-size: 0.82rem; color: #a855f7; text-transform: uppercase; margin-bottom: 8px;">
+                        🥊 Creative & Entertainment (Requires Clout)
+                    </h4>
+                    <div class="venue-action-grid" style="margin-bottom: 16px;">
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('Bukom Boxing Bout', 650, 80, 22, 200)">
+                            <div class="venue-action-title">🥊 Bukom Boxing Prize Fight</div>
+                            <div class="venue-action-desc">3 intense sparring rounds in the ring at Bukom Arena against Ga lion contenders.</div>
+                            <div class="venue-action-cost">+₵650 Cedis • +80 Clout • -22 Energy (Req: 200 Clout)</div>
+                        </button>
+
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('Bloom Bar Afrobeats DJ', 850, 120, 20, 350)">
+                            <div class="venue-action-title">🎧 Bloom Bar Guest DJ</div>
+                            <div class="venue-action-desc">Drop Azonto and Amapiano bangers for the high-rollers and Borgas at Bloom Bar Osu.</div>
+                            <div class="venue-action-cost">+₵850 Cedis • +120 Clout • -20 Energy (Req: 350 Clout)</div>
+                        </button>
+                    </div>
+
+                    <!-- Section 3: Tech & Corporate -->
+                    <h4 style="font-size: 0.82rem; color: #10b981; text-transform: uppercase; margin-bottom: 8px;">
+                        💻 Corporate, FinTech & Real Estate
+                    </h4>
+                    <div class="venue-action-grid">
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('MEST Software Engineer', 1400, 180, 20, 450)">
+                            <div class="venue-action-title">💻 MEST Africa Software Engineer</div>
+                            <div class="venue-action-desc">Code scalable Mobile Money API integrations, deploy microservices during Dumsor.</div>
+                            <div class="venue-action-cost">+₵1,400 Cedis • +180 Clout • -20 Energy</div>
+                        </button>
+
+                        <button class="venue-action-btn" onclick="window.ui.executeHustleShift('Luxury Real Estate Broker', 3500, 400, 25, 700)">
+                            <div class="venue-action-title">🏡 East Legon Luxury Realtor</div>
+                            <div class="venue-action-desc">Broker a 2-year rent advance villa lease for visiting Borgas, collect 10% agency fee!</div>
+                            <div class="venue-action-cost">+₵3,500 Cedis • +400 Clout • -25 Energy</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    executeHustleShift(title, pay, clout, energyCost, reqClout = 0) {
+        if (gameState.data.clout < reqClout) {
+            alert(`You need at least ${reqClout} Clout to take this high-profile gig!`);
+            return;
+        }
+        if (!gameState.useEnergy(energyCost)) {
+            alert('You are exhausted! Grab waakye or rest to recover your stamina.');
+            return;
+        }
+
+        audio.playCashJingle();
+        document.querySelector('.modal-overlay')?.remove();
+
+        const root = document.getElementById('modals-root');
+        root.innerHTML = `
+            <div class="modal-overlay open">
+                <div class="modal-card quest-complete-card">
+                    <div class="complete-icon">💼</div>
+                    <div class="complete-title">${title} Shift Completed!</div>
+                    <div class="complete-payout">
+                        <div class="payout-item">🪙 +₵${pay} Cedis</div>
+                        <div class="payout-item">✨ +${clout} Clout</div>
+                    </div>
+
+                    <!-- 3x Sponsor Paycheck Multiplier -->
+                    <div style="background: rgba(245, 158, 11, 0.15); border: 1px dashed #f59e0b; border-radius: 12px; padding: 12px; margin: 14px 0;">
+                        <div style="font-weight: 800; color: #fbbf24;">🎬 3x Sponsor Paycheck Multiplier!</div>
+                        <p style="font-size: 0.8rem; color: #cbd5e1; margin: 4px 0 8px 0;">
+                            Watch a 6-second sponsor video to triple your payout to +₵${pay * 3} Cedis!
+                        </p>
+                        <button class="btn-momo-buy" onclick="window.ui.claimTripleGigPay(${pay}, ${clout})">
+                            📺 Watch 6s Ad to 3x Pay (+₵${pay * 3})
+                        </button>
+                    </div>
+
+                    <button class="btn-submit" onclick="this.closest('.modal-overlay').remove(); window.gameState.earnCedis(${pay}); window.gameState.addClout(${clout});">
+                        Accept Base Pay (+₵${pay})
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    claimTripleGigPay(basePay, clout) {
+        monetization.showRewardedVideo('reward_triple_gig', () => {
+            const triple = basePay * 3;
+            gameState.earnCedis(triple);
+            gameState.addClout(clout * 2);
+            audio.playLevelUp();
+            this.showToast(`🎉 3x PAYCHECK CLAIMED: +₵${triple} Cedis!`, '💰');
+            document.querySelector('.modal-overlay')?.remove();
+            this.renderHUD(gameState.data);
+        });
+    }
+
+    // --- 3. TROTRO TRANSPORT EMPIRE ---
     openTrotroEmpireModal() {
         audio.playTap();
         const root = document.getElementById('modals-root');
         if (!root) return;
 
         const fleet = gameState.data.trotros || [];
+        const totalTakingsReady = fleet.reduce((acc, t) => acc + (t.takingsReady || 0), 0);
 
         const fleetHtml = fleet.length === 0 ? `
             <div style="text-align: center; padding: 24px; background: rgba(255,255,255,0.04); border-radius: 12px; margin: 12px 0;">
                 <div style="font-size: 2.5rem; margin-bottom: 6px;">🚌</div>
                 <div style="font-weight: 700; color: #f8fafc;">No Trotros in your fleet yet!</div>
-                <p style="font-size: 0.8rem; color: #94a3b8; margin: 6px 0 12px 0;">Buy a Yellow Taxi or Mercedes 207 Bones Trotro below to start collecting daily commuter fares across Accra.</p>
+                <p style="font-size: 0.8rem; color: #94a3b8; margin: 6px 0 12px 0;">
+                    Buy a Yellow Taxi or Mercedes 207 Bones Trotro below to start collecting daily commuter fares across Greater Accra.
+                </p>
             </div>
         ` : fleet.map(t => `
             <div class="trotro-card">
-                <div>
-                    <div class="trotro-header">
-                        <div>
-                            <div class="trotro-title">🚌 ${t.customName}</div>
-                            <div class="trotro-route">📍 ${t.routeName}</div>
-                        </div>
-                        <span class="shop-badge best">Active Route</span>
+                <div class="trotro-card-header">
+                    <div>
+                        <div class="trotro-name">${t.customName}</div>
+                        <div class="trotro-route">📍 Route: ${t.routeName}</div>
                     </div>
-
-                    <div class="trotro-stat-row">
-                        <span>Bus Condition:</span>
-                        <span style="font-weight: 700; color: ${t.condition > 50 ? '#34d399' : '#f87171'};">${t.condition}%</span>
-                    </div>
-                    <div class="condition-bar">
-                        <div class="condition-fill" style="width: ${t.condition}%;"></div>
-                    </div>
-
-                    <div class="trotro-stat-row">
-                        <span>Daily Fuel & Dues:</span>
-                        <span>-₵${t.dailyFuel + t.dues} Cedis</span>
-                    </div>
-                    <div class="trotro-stat-row">
-                        <span>Net Takings Ready:</span>
-                        <span style="color: #34d399; font-weight: 800; font-size: 1rem;">+₵${t.takingsReady} Cedis</span>
-                    </div>
+                    <span class="trotro-status ready">
+                        ₵${t.takingsReady || 0} Fares Ready
+                    </span>
                 </div>
-
-                <div style="display: flex; gap: 8px; margin-top: 12px;">
-                    <button class="btn-submit" style="flex: 2;" onclick="window.ui.collectTrotroPay('${t.id}')">
-                        🪙 Collect Fares (+₵${t.takingsReady})
+                <div class="condition-bar">
+                    <div class="condition-fill" style="width: ${t.condition}%;"></div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button class="btn-momo-buy" style="flex: 1;" onclick="window.ui.collectSingleTrotro('${t.id}')">
+                        💰 Collect Takings
                     </button>
-                    <button class="btn-momo-buy" style="flex: 2;" onclick="window.ui.collectTrotroDoublePay('${t.id}')" title="Watch 6s Sponsor Ad for 2x Commuter Earnings">
-                        📺 2x Fares
-                    </button>
-                    ${t.condition < 80 ? `
-                        <button class="btn-standard" style="flex: 1;" onclick="window.ui.repairTrotro('${t.id}')">
-                            🔧 Fix
+                    ${t.condition < 90 ? `
+                        <button class="btn-submit" style="flex: 1;" onclick="window.ui.repairTrotro('${t.id}')">
+                            🔧 Abossey Okai Repair (-₵${(100 - t.condition) * 20})
                         </button>
                     ` : ''}
                 </div>
             </div>
         `).join('');
 
-        const catalogHtml = TROTRO_MODELS.map(m => `
-            <div class="shop-card" style="display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <div style="font-size: 2rem; margin-bottom: 4px;">🚌</div>
-                    <div class="shop-title">${m.name}</div>
-                    <p style="font-size: 0.78rem; color: #94a3b8; margin: 4px 0;">Seats: ${m.seats} • Base Fares: ₵${m.baseTakings}/day</p>
-                    <div class="shop-price">₵${m.cost.toLocaleString()} Cedis</div>
+        const modelsCatalogHtml = TROTRO_MODELS.map(m => `
+            <div class="shop-card" style="text-align: left; padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 800; font-size: 0.95rem; color: #f8fafc;">${m.name}</div>
+                    <span class="shop-badge best">₵${m.cost.toLocaleString()}</span>
                 </div>
-                <button class="btn-submit" style="margin-top: 10px;" onclick="window.ui.buyTrotroPrompt('${m.id}')">
-                    Buy Vehicle
-                </button>
+                <div style="font-size: 0.78rem; color: #94a3b8; margin: 4px 0 8px 0;">
+                    💺 ${m.seats} Passengers • Daily Base Takings: ₵${m.baseTakings} • Fuel: ₵${m.dailyFuel}
+                </div>
+                <div style="display: flex; gap: 6px;">
+                    <select id="route-sel-${m.id}" style="flex: 1; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 8px; font-size: 0.75rem; padding: 4px;">
+                        ${TROTRO_ROUTES.map(r => `<option value="${r.id}">${r.name} (${r.demand})</option>`).join('')}
+                    </select>
+                    <button class="btn-submit" style="padding: 6px 10px; font-size: 0.78rem;" onclick="window.ui.buyTrotroPrompt('${m.id}')">
+                        Buy
+                    </button>
+                </div>
             </div>
         `).join('');
 
@@ -359,25 +486,30 @@ export class UIManager {
             <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
                 <div class="modal-card" style="max-width: 720px; max-height: 85vh; overflow-y: auto;">
                     <div class="modal-header">
-                        <h3>🚌 Accra Trotro Transport Empire</h3>
+                        <div>
+                            <h3 style="margin: 0;">🚌 Trotro Transport Tycoon</h3>
+                            <span style="font-size: 0.8rem; color: #38bdf8;">Fleet Size: ${fleet.length} Vehicles • Takings Pool: ₵${totalTakingsReady.toLocaleString()}</span>
+                        </div>
                         <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
                     </div>
 
-                    <div style="background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; border-radius: 12px; padding: 12px; margin-bottom: 14px;">
-                        <div style="font-weight: 800; color: #fbbf24; font-size: 0.95rem;">GPRTU Accra Transport Union Member</div>
-                        <p style="font-size: 0.8rem; color: #cbd5e1; margin-top: 3px;">
-                            Buy buses, hire conductors ("mates"), assign routes across Circle, Madina, and East Legon, and collect passenger takings every day!
-                        </p>
+                    ${fleet.length > 0 ? `
+                    <div style="display: flex; gap: 8px; margin: 10px 0 16px 0;">
+                        <button class="btn-submit" style="flex: 1; font-size: 0.95rem;" onclick="window.ui.collectAllTrotros()">
+                            💰 Collect All Daily Takings (+₵${totalTakingsReady})
+                        </button>
+                        <button class="btn-momo-buy" style="flex: 1; font-size: 0.95rem;" onclick="window.ui.claimDoubleTrotroTakings(${totalTakingsReady})">
+                            🎬 Watch Ad to 2x Fares (+₵${totalTakingsReady * 2})
+                        </button>
                     </div>
+                    ` : ''}
 
-                    <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase;">Your Trotro Fleet (${fleet.length})</h4>
-                    <div class="trotro-fleet-grid">
-                        ${fleetHtml}
-                    </div>
+                    <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase;">Your Fleet on Accra Roads</h4>
+                    ${fleetHtml}
 
                     <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; margin-top: 18px;">Commercial Vehicle Dealership</h4>
-                    <div class="shop-grid">
-                        ${catalogHtml}
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; margin-top: 8px;">
+                        ${modelsCatalogHtml}
                     </div>
                 </div>
             </div>
@@ -385,118 +517,106 @@ export class UIManager {
     }
 
     buyTrotroPrompt(modelId) {
-        const model = TROTRO_MODELS.find(m => m.id === modelId);
-        if (!model) return;
+        const sel = document.getElementById(`route-sel-${modelId}`);
+        const routeId = sel ? sel.value : TROTRO_ROUTES[0].id;
+        const name = prompt('Enter a Ghanaian name/slogan for your trotro:', "Nyame Nhyira");
+        if (!name) return;
 
-        if (gameState.data.cedis < model.cost) {
-            alert(`You need ₵${model.cost.toLocaleString()} Cedis to purchase this vehicle! Hustle more gigs or deposit via MTN MoMo.`);
-            return;
-        }
-
-        const routeOptions = TROTRO_ROUTES.map(r => `
-            <button class="story-choice-btn" onclick="window.ui.confirmBuyTrotro('${model.id}', '${r.id}')">
-                <span class="choice-text">📍 ${r.name} (${r.demand} Demand)</span>
-                <span class="choice-consequence">${r.multiplier}x Fare Multiplier</span>
-            </button>
-        `).join('');
-
-        const root = document.getElementById('modals-root');
-        root.innerHTML = `
-            <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
-                <div class="modal-card" style="max-width: 500px;">
-                    <div class="modal-header">
-                        <h3>Assign Route: ${model.name}</h3>
-                        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
-                    </div>
-                    <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 12px;">Choose a high-demand commuter route across Accra:</p>
-                    <div class="dialogue-choices">
-                        ${routeOptions}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    confirmBuyTrotro(modelId, routeId) {
         audio.playCashJingle();
-        const success = gameState.buyTrotro(modelId, routeId);
+        const success = gameState.buyTrotro(modelId, routeId, name);
         if (success) {
-            this.showToast('🎉 New Trotro added to your fleet! Commuter fares active.', '🚌');
+            this.showToast(`Bought new trotro: "${name}" assigned to route!`, '🚌');
             this.openTrotroEmpireModal();
+        } else {
+            alert('Not enough Cedis to buy this commercial vehicle!');
         }
     }
 
-    collectTrotroPay(trotroId) {
+    collectSingleTrotro(id) {
         audio.playCashJingle();
-        const earned = gameState.collectTrotroTakings(trotroId, 1);
-        this.showToast(`Collected +₵${earned} Cedis from your Trotro mate!`, '🪙');
+        const earned = gameState.collectTrotroTakings(id, 1);
+        this.showToast(`Collected +₵${earned} Cedis in commuter fares!`, '🪙');
         this.openTrotroEmpireModal();
     }
 
-    collectTrotroDoublePay(trotroId) {
-        monetization.showRewardedVideo('trotro_double_fares', () => {
-            const earned = gameState.collectTrotroTakings(trotroId, 2);
+    collectAllTrotros() {
+        const fleet = gameState.data.trotros || [];
+        let total = 0;
+        for (const t of fleet) {
+            total += gameState.collectTrotroTakings(t.id, 1);
+        }
+        audio.playCashJingle();
+        this.showToast(`Collected +₵${total} Cedis across your entire fleet!`, '💰');
+        this.openTrotroEmpireModal();
+    }
+
+    claimDoubleTrotroTakings(baseTotal) {
+        monetization.showRewardedVideo('reward_double_trotro', () => {
+            const fleet = gameState.data.trotros || [];
+            let total = 0;
+            for (const t of fleet) {
+                total += gameState.collectTrotroTakings(t.id, 2);
+            }
             audio.playLevelUp();
-            this.showToast(`🎉 2x SPONSOR BONUS! Collected +₵${earned} Cedis!`, '💰');
-            this.openTrotroEmpireModal();
+            this.showToast(`🎉 2x TROTRO TAKINGS CLAIMED: +₵${total} Cedis!`, '🚌');
+            document.querySelector('.modal-overlay')?.remove();
+            this.renderHUD(gameState.data);
         });
     }
 
-    repairTrotro(trotroId) {
+    repairTrotro(id) {
         audio.playTap();
-        const success = gameState.repairTrotro(trotroId);
+        const success = gameState.repairTrotro(id);
         if (success) {
-            this.showToast('Trotro repaired by Kokompe mechanics! Condition 100%.', '🔧');
+            this.showToast('Gearbox & brakes overhauled at Abossey Okai! 100% Condition.', '🔧');
             this.openTrotroEmpireModal();
         } else {
             alert('Not enough Cedis to repair this vehicle!');
         }
     }
 
-    // --- 3. HOUSING, RENT & LAND GUARDS MODAL ---
+    // --- 4. HOUSING, RENT & LAND GUARDS ---
     openHousingModal() {
         audio.playTap();
         const root = document.getElementById('modals-root');
         if (!root) return;
 
-        const currentHousing = gameState.data.housing;
+        const currentHousing = gameState.data.housing || { name: 'Jamestown Single Room', weeklyRent: 150, rentDueDays: 7, landlordName: 'Agya Koo' };
         const plots = gameState.data.plots || [];
 
-        const housingCatalogHtml = ACCRA_HOUSING.map(h => {
-            const isCurrent = currentHousing.id === h.id;
-            return `
-                <div class="house-card ${isCurrent ? 'active' : ''}">
-                    <div>
-                        <div class="shop-title">${h.name}</div>
-                        <div style="font-size: 0.78rem; color: #38bdf8; font-weight: 700; margin-bottom: 4px;">Landlord: ${h.landlord}</div>
-                        <p style="font-size: 0.78rem; color: #cbd5e1; margin-bottom: 8px;">${h.desc}</p>
-                        <div class="shop-price">₵${h.rent.toLocaleString()} / week</div>
-                    </div>
-                    <div style="display: flex; gap: 8px; margin-top: 10px;">
-                        ${isCurrent ? `
-                            <button class="btn-submit" disabled style="opacity: 0.6; flex: 1;">Current Residence</button>
-                        ` : `
-                            <button class="btn-submit" style="flex: 1;" onclick="window.ui.upgradeHomePrompt('${h.id}', false)">Rent (1 Mo)</button>
-                            <button class="btn-momo-buy" style="flex: 1;" onclick="window.ui.upgradeHomePrompt('${h.id}', true)">2-Yr Advance</button>
-                        `}
-                    </div>
+        const housingCatalogHtml = ACCRA_HOUSING.map(h => `
+            <div class="housing-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 800; font-size: 0.95rem; color: #f8fafc;">${h.name}</div>
+                    <span class="housing-rent">₵${h.rent}/wk</span>
                 </div>
-            `;
-        }).join('');
+                <div class="housing-desc">${h.desc}</div>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 6px;">Landlord: ${h.landlord}</div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-submit" style="flex: 1; padding: 6px;" onclick="window.ui.upgradeHomePrompt('${h.id}', false)">
+                        Move In (4 Wks Advance)
+                    </button>
+                    <button class="btn-momo-buy" style="flex: 1; padding: 6px;" onclick="window.ui.upgradeHomePrompt('${h.id}', true)">
+                        2-Year Advance (104 Wks)
+                    </button>
+                </div>
+            </div>
+        `).join('');
 
         const plotsHtml = plots.length === 0 ? `
             <div style="text-align: center; padding: 18px; background: rgba(255,255,255,0.04); border-radius: 12px; margin: 10px 0;">
-                <p style="font-size: 0.82rem; color: #94a3b8;">No titled land plots yet. Buy land below in East Legon Hills or Pokuase to build your dream mansion.</p>
+                <div style="font-size: 2rem;">🚜</div>
+                <p style="font-size: 0.8rem; color: #94a3b8; margin: 4px 0 0 0;">No land plots owned yet. Acquire land in East Legon Hills below to build compound apartments.</p>
             </div>
         ` : plots.map(p => `
-            <div class="house-card">
-                <div class="trotro-header">
+            <div class="trotro-card">
+                <div class="trotro-card-header">
                     <div>
-                        <div class="trotro-title">Plot in ${p.location}</div>
+                        <div class="trotro-name">${p.location} Plot</div>
                         <div class="trotro-route">Stage: ${p.stage.toUpperCase()} (${p.progress}%)</div>
                     </div>
-                    <span class="shop-badge ${p.landGuardStatus === 'peaceful' ? 'best' : 'vip'}">
-                        ${p.landGuardStatus === 'peaceful' ? '✅ Peaceful Title' : '⚠️ Land Guards Disputed'}
+                    <span class="trotro-status ${p.landGuardStatus === 'disputed' ? 'warning' : 'ready'}">
+                        ${p.landGuardStatus === 'disputed' ? '⚠️ Land Guards on Site' : '🛡️ Peaceful Title'}
                     </span>
                 </div>
                 <div class="condition-bar">
@@ -513,7 +633,7 @@ export class UIManager {
                             🧱 Advance Build Stage (-₵8,000)
                         </button>
                     ` : `
-                        <span style="color: #34d399; font-weight: 800; font-size: 0.85rem;">🎉 Building Completed!</span>
+                        <span style="color: #34d399; font-weight: 800; font-size: 0.85rem;">🎉 Building Completed! Tenants Paying 2-Yr Advance!</span>
                     `}
                 </div>
             </div>
@@ -604,8 +724,10 @@ export class UIManager {
         audio.playCashJingle();
         const success = gameState.settleLandGuards(plotId);
         if (success) {
-            this.showToast('Ga Traditional Council mediation completed. Land Guards stood down!', '🛡️');
+            this.showToast('Settle Land Guards with schnapps & drink money! Land is now secure.', '🛡️');
             this.openHousingModal();
+        } else {
+            alert('Not enough Cedis to settle the Land Guards!');
         }
     }
 
@@ -613,120 +735,261 @@ export class UIManager {
         audio.playCashJingle();
         const success = gameState.advanceBuildingStage(plotId);
         if (success) {
-            this.showToast('Building stage advanced! Concrete and roofing crew active.', '🧱');
+            this.showToast('Construction stage advanced! Cement blocks & roofing progressing.', '🧱');
             this.openHousingModal();
+        } else {
+            alert('Not enough Cedis to advance construction!');
         }
     }
 
-    // --- 4. MAYOR OF ACCRA (AMA) & CIVIC POLICIES MODAL ---
+    // --- 5. MAYOR OF ACCRA & CIVIC POLICIES ---
     openMayorModal() {
         audio.playTap();
         const root = document.getElementById('modals-root');
         if (!root) return;
 
-        const mayorData = gameState.data.mayor;
-        const sittingMayor = mayorData.currentMayor;
+        const m = gameState.data.mayor || {
+            currentMayor: { username: '@KwameEastLegon', title: 'Mayor of Accra', message: 'Dumsor cancelled this week!', policy: 'waakye_subsidy' },
+            candidates: []
+        };
 
-        const candidatesHtml = mayorData.candidates.map(c => `
-            <div class="candidate-item">
-                <div class="candidate-info">
-                    <div class="candidate-name">${c.name} <span class="policy-badge">${c.policy.replace('_', ' ').toUpperCase()}</span></div>
-                    <div class="candidate-slogan">"${c.slogan}"</div>
-                    <div style="font-size: 0.75rem; color: #34d399; font-weight: 700;">🗳️ ${c.votes.toLocaleString()} Votes</div>
+        const candidatesHtml = (m.candidates || []).map(c => `
+            <div class="candidate-card">
+                <div class="candidate-header">
+                    <div>
+                        <div class="candidate-name">${c.name}</div>
+                        <div class="candidate-slogan">"${c.slogan}"</div>
+                    </div>
+                    <span class="candidate-votes">🗳️ ${c.votes} Votes</span>
                 </div>
-                <div>
-                    ${mayorData.playerVote === c.name ? `
-                        <button class="btn-submit" disabled style="opacity: 0.6; padding: 6px 14px;">Voted ✓</button>
+                <div style="margin-top: 8px;">
+                    ${m.playerVote === c.name ? `
+                        <button class="btn-momo-buy" style="width: 100%; opacity: 0.8;" disabled>✅ Voted</button>
                     ` : `
-                        <button class="btn-submit" style="padding: 6px 14px;" onclick="window.ui.voteCandidate('${c.name}')">Vote</button>
+                        <button class="btn-submit" style="width: 100%;" onclick="window.ui.voteMayorPrompt('${c.name}')">Vote for ${c.name}</button>
                     `}
                 </div>
             </div>
         `).join('');
 
         const policiesHtml = MAYOR_POLICIES.map(p => `
-            <div class="shop-card" style="padding: 10px;">
-                <div style="font-size: 1.4rem;">${p.emoji}</div>
-                <div style="font-weight: 700; font-size: 0.88rem; margin: 3px 0;">${p.label}</div>
-                <div style="font-size: 0.75rem; color: #94a3b8;">${p.effect}</div>
+            <div class="policy-card">
+                <span class="policy-icon">${p.emoji}</span>
+                <div class="policy-info">
+                    <div class="policy-name">${p.label}</div>
+                    <div class="policy-effect">${p.effect}</div>
+                </div>
             </div>
         `).join('');
 
         root.innerHTML = `
             <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
-                <div class="modal-card" style="max-width: 680px; max-height: 85vh; overflow-y: auto;">
+                <div class="modal-card" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
                     <div class="modal-header">
-                        <h3>🏛️ Accra City Hall & Mayoral Elections</h3>
+                        <h3>🏛️ Mayor of Accra Civic Hall (AMA)</h3>
                         <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
                     </div>
 
-                    <!-- Sitting Mayor Announcement -->
-                    <div class="mayor-card">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                            <div>
-                                <span class="shop-badge best">SITTING MAYOR OF ACCRA</span>
-                                <div style="font-size: 1.3rem; font-weight: 800; color: #f8fafc; margin: 4px 0;">${sittingMayor.username}</div>
-                                <div style="color: #34d399; font-weight: 700; font-size: 0.85rem;">Active Policy: ${sittingMayor.policy.replace('_', ' ').toUpperCase()}</div>
-                            </div>
-                            <div style="font-size: 2.5rem;">👑</div>
+                    <!-- Current Mayor Card -->
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(6, 78, 59, 0.4)); border: 1px solid #10b981; border-radius: 14px; padding: 14px; margin-bottom: 16px;">
+                        <span class="shop-badge best">CURRENT CITY MAYOR</span>
+                        <div style="font-size: 1.25rem; font-weight: 800; margin-top: 4px; color: #f8fafc;">
+                            ${m.currentMayor.username} (${m.currentMayor.title})
                         </div>
-                        <p style="font-size: 0.85rem; color: #e2e8f0; margin-top: 10px; font-style: italic;">
-                            "${sittingMayor.message}"
+                        <p style="font-size: 0.88rem; color: #a7f3d0; margin: 4px 0 10px 0;">
+                            "${m.currentMayor.message}"
                         </p>
+                        <button class="btn-momo-buy" onclick="window.ui.broadcastMayorMessagePrompt()">
+                            📢 Broadcast Mayoral Announcement (-₵500)
+                        </button>
                     </div>
 
-                    <!-- Active Policies -->
-                    <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase;">Accra City Policies</h4>
-                    <div class="travel-grid" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin-bottom: 16px;">
+                    <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase;">Active Accra Municipal Policies</h4>
+                    <div class="policies-grid">
                         ${policiesHtml}
                     </div>
 
-                    <!-- Live Election Voting -->
-                    <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase;">Live Mayoral Election Ballot</h4>
-                    <div class="candidates-list">
+                    <h4 style="font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; margin-top: 18px;">Weekly Mayoral Elections</h4>
+                    <div class="candidates-grid">
                         ${candidatesHtml}
                     </div>
 
-                    <!-- Run for Mayor -->
-                    <div style="background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.2); border-radius: 12px; padding: 14px; margin-top: 14px;">
-                        <div style="font-weight: 800; color: #fbbf24; margin-bottom: 4px;">Run for Mayor of Accra!</div>
-                        <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 10px;">
-                            File candidacy (₵10,000 fee). Elected Mayors earn a weekly allowance of ₵25,000 Cedis and broadcast announcements to the entire city!
-                        </p>
-                        <button class="btn-momo-buy" onclick="window.ui.runForMayorPrompt()">
-                            🏛️ File Candidacy (-₵10,000 Cedis)
-                        </button>
-                    </div>
+                    <button class="btn-submit" style="margin-top: 14px;" onclick="window.ui.runForMayorPrompt()">
+                        🏛️ File Candidacy to Run for Mayor of Accra (-₵10,000 Filing Fee)
+                    </button>
                 </div>
             </div>
         `;
     }
 
-    voteCandidate(name) {
+    voteMayorPrompt(candidateName) {
         audio.playTap();
-        const success = gameState.voteForMayor(name);
+        const success = gameState.voteForMayor(candidateName);
         if (success) {
-            this.showToast(`Cast your vote for ${name}! (+25 Clout)`, '🗳️');
+            this.showToast(`Cast ballot for ${candidateName}!`, '🗳️');
             this.openMayorModal();
+        } else {
+            alert('You have already voted in this week’s election cycle!');
         }
     }
 
     runForMayorPrompt() {
         if (gameState.data.cedis < 10000) {
-            alert('You need ₵10,000 Cedis filing fee to run for Mayor of Accra!');
+            alert('You need ₵10,000 Cedis to file candidate papers with the Electoral Commission!');
             return;
         }
-
-        const msg = prompt('Enter your campaign slogan for the Accra billboards:', 'Clean Streets & Free Wi-Fi for all Chales!');
-        if (!msg) return;
+        const slogan = prompt('Enter your Mayoral Campaign Slogan (e.g. No Dumsor in Accra!):', 'More Waakye, Steady Power!');
+        if (!slogan) return;
 
         audio.playLevelUp();
-        gameState.runForMayor(msg, 'waakye_subsidy');
-        this.showToast('🏛️ Candidacy filed! You are officially on the Accra mayoral ballot.', '👑');
+        gameState.runForMayor(slogan, 'steady_light');
+        this.showToast('You are officially running for Mayor of Accra! Campaign active.', '🏛️');
         this.openMayorModal();
     }
 
-    // --- 5. VENUE ACTION MODALS (Clicking 3D pins / Landmarks) ---
+    broadcastMayorMessagePrompt() {
+        if (gameState.data.cedis < 500) {
+            alert('Broadcasting costs ₵500 Cedis.');
+            return;
+        }
+        const msg = prompt('Enter announcement to broadcast to all players:', 'Dumsor is cancelled this week! Waakye subsidies active in Osu!');
+        if (!msg) return;
+
+        gameState.spendCedis(500);
+        gameState.data.mayor.currentMayor.message = msg;
+        gameState.save();
+        audio.playLevelUp();
+        this.showToast('Mayoral announcement broadcast across Accra!', '📢');
+        this.renderHUD(gameState.data);
+        this.openMayorModal();
+    }
+
+    // --- 6. CHALEPHONE (IN-GAME SMARTPHONE) ---
+    openPhoneModal() {
+        audio.playTap();
+        const root = document.getElementById('modals-root');
+        if (!root) return;
+
+        const d = gameState.data;
+        const tab = this.activePhoneTab || 'chat';
+
+        let bodyContent = '';
+        if (tab === 'chat') {
+            bodyContent = `
+                <div class="chat-bubbles" style="max-height: 280px; overflow-y: auto;">
+                    <div class="chat-msg">
+                        <strong style="color: #f59e0b;">🍛 Auntie Muni:</strong>
+                        <p style="margin: 2px 0 6px 0;">Charle Kwame, come by Osu Oxford Street! Fresh hot waakye is steaming with wele, egg & fish.</p>
+                        <button class="btn-submit" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.ui.openVenue('auntie_muni')">Visit Stall 🍛</button>
+                    </div>
+
+                    <div class="chat-msg">
+                        <strong style="color: #ef4444;">🏡 Landlord Agya Koo:</strong>
+                        <p style="margin: 2px 0 6px 0;">Kwame, remember your rent advance is due! In Ghana we don't do stories. Pay on time!</p>
+                        <button class="btn-momo-buy" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.ui.openHousingModal()">Pay Rent 💸</button>
+                    </div>
+
+                    <div class="chat-msg">
+                        <strong style="color: #38bdf8;">💎 Slay Queen Serwaa:</strong>
+                        <p style="margin: 2px 0 6px 0;">Are you pulling up to Bloom Bar tonight? The East Legon Borgas are ordering champagne!</p>
+                        <button class="btn-submit" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.ui.openVenue('bloom_bar')">Meet at Bloom 🪩</button>
+                    </div>
+
+                    <div class="chat-msg">
+                        <strong style="color: #34d399;">🚌 Driver Kwabena:</strong>
+                        <p style="margin: 2px 0 6px 0;">Boss! Circle-Kaneshie route is packed with commuters today. The mate is counting the coins.</p>
+                        <button class="btn-submit" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.ui.openTrotroEmpireModal()">Fleet Dashboard 🚌</button>
+                    </div>
+                </div>
+            `;
+        } else if (tab === 'momo') {
+            bodyContent = `
+                <div style="text-align: center; padding: 12px 0;">
+                    <div style="font-size: 0.8rem; color: #94a3b8;">MTN Mobile Money Balance</div>
+                    <div style="font-size: 1.8rem; font-weight: 800; color: #fbbf24;">₵${d.cedis.toLocaleString()}</div>
+                    <div style="font-size: 0.82rem; color: #38bdf8; margin-top: 4px;">Account Status: Verified Gold Chale</div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                    <button class="btn-momo-buy" onclick="window.ui.openMoMoShop()">
+                        💳 Top Up Wallet via Paystack
+                    </button>
+                    <button class="btn-submit" onclick="window.ui.payECGPrepaidPrompt()">
+                        💡 Pay ECG Electric Prepaid (-₵120) to Cancel Dumsor
+                    </button>
+                </div>
+            `;
+        } else if (tab === 'news') {
+            bodyContent = `
+                <div style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;">
+                    <div style="background: rgba(30, 41, 59, 0.7); padding: 10px; border-radius: 10px; border-left: 3px solid #10b981;">
+                        <strong style="font-size: 0.85rem; color: #34d399;">MAYOR CONFIRMS POWER SUBSIDY</strong>
+                        <p style="font-size: 0.78rem; color: #cbd5e1; margin-top: 2px;">Dumsor blackouts cancelled across Accra as new municipal energy grid kicks in.</p>
+                    </div>
+
+                    <div style="background: rgba(30, 41, 59, 0.7); padding: 10px; border-radius: 10px; border-left: 3px solid #f59e0b;">
+                        <strong style="font-size: 0.85rem; color: #fbbf24;">2-YEAR RENT ADVANCE DEBATE</strong>
+                        <p style="font-size: 0.78rem; color: #cbd5e1; margin-top: 2px;">East Legon landlords demand 2 years advance payment upfront as Detty December tourists flock into Accra.</p>
+                    </div>
+
+                    <div style="background: rgba(30, 41, 59, 0.7); padding: 10px; border-radius: 10px; border-left: 3px solid #38bdf8;">
+                        <strong style="font-size: 0.85rem; color: #38bdf8;">TROTRO UNION SURGE</strong>
+                        <p style="font-size: 0.78rem; color: #cbd5e1; margin-top: 2px;">GPRTU reports commuter passenger volumes reach 1.8M daily across Circle and Kaneshie terminals.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        root.innerHTML = `
+            <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
+                <div class="modal-card" style="max-width: 440px;">
+                    <div class="modal-header">
+                        <h3>📱 ChalePhone 15 Pro Max</h3>
+                        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
+                    </div>
+
+                    <!-- Phone Frame -->
+                    <div style="background: #0f172a; border: 2px solid #334155; border-radius: 20px; padding: 16px; margin-bottom: 14px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 12px;">
+                            <span>MTN 5G GH 📶</span>
+                            <span>Accra 12:45 PM</span>
+                            <span>🔋 94%</span>
+                        </div>
+
+                        <!-- App Tabs -->
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; background: rgba(30,41,59,0.8); padding: 4px; border-radius: 10px;">
+                            <button class="btn-submit" style="flex: 1; padding: 6px; font-size: 0.78rem; ${tab==='chat'?'background:#38bdf8;':''}" onclick="window.ui.setPhoneTab('chat')">💬 SMS</button>
+                            <button class="btn-submit" style="flex: 1; padding: 6px; font-size: 0.78rem; ${tab==='momo'?'background:#38bdf8;':''}" onclick="window.ui.setPhoneTab('momo')">📱 MoMo</button>
+                            <button class="btn-submit" style="flex: 1; padding: 6px; font-size: 0.78rem; ${tab==='news'?'background:#38bdf8;':''}" onclick="window.ui.setPhoneTab('news')">📰 News</button>
+                        </div>
+
+                        ${bodyContent}
+                    </div>
+
+                    <button class="btn-submit" onclick="this.closest('.modal-overlay').remove()">
+                        Put Away Phone
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    setPhoneTab(tab) {
+        this.activePhoneTab = tab;
+        this.openPhoneModal();
+    }
+
+    payECGPrepaidPrompt() {
+        if (gameState.spendCedis(120)) {
+            audio.playCashJingle();
+            this.showToast('Paid ECG prepaid meter! Steady electricity guaranteed.', '💡');
+            this.openPhoneModal();
+        } else {
+            alert('Not enough Cedis to top up ECG prepaid!');
+        }
+    }
+
+    // --- 7. VENUES & MAP EXPLORATION ---
     openVenue(venueId) {
         audio.playTap();
         const root = document.getElementById('modals-root');
@@ -737,19 +1000,18 @@ export class UIManager {
                 title: 'Auntie Muni Waakye',
                 emoji: '🍛',
                 loc: 'Oxford Street, Osu',
-                desc: 'Legendary queen of Oxford Street Waakye. Steaming hot rice, beans, black shito, and wele.',
+                desc: 'The undisputed legendary Waakye joint of Accra. Hot steaming rice & beans, spicy black shito, tender wele, and fried fish.',
                 actions: [
-                    { title: 'Chop Big Waakye & Wele', desc: '+70% Hunger, +30% Energy', cost: '₵30', fn: () => { gameState.feed(70, 30); gameState.spendCedis(30); window.ui.showToast('Delicious Waakye enjoyed!', '🍛'); } },
-                    { title: 'Chop Spicy Kelewele', desc: '+40% Hunger, +15% Energy', cost: '₵18', fn: () => { gameState.feed(40, 15); gameState.spendCedis(18); window.ui.showToast('Spicy fried plantain hits right!', '🔥'); } },
-                    { title: 'Waakye Stall Apprentice Shift', desc: 'Pack food for hungry customers (+₵180 Cedis)', cost: 'Free', fn: () => { gameState.earnCedis(180); window.ui.showToast('Earned +₵180 Cedis at Waakye Stall!', '🪙'); } },
-                    { title: 'Talk to Auntie Muni', desc: 'Story campaign mission dialogue', cost: 'Story', fn: () => { window.ui.openNpcDialogue('auntie_muni'); } }
+                    { title: 'Buy Executive Waakye Parcel', desc: '+60% Hunger, +30% Energy refill', cost: '₵35', fn: () => { gameState.feed(60, 30); gameState.spendCedis(35); window.ui.showToast('Steaming hot Waakye enjoyed on Oxford St!', '🍛'); } },
+                    { title: 'Full Special with Fried Guinea Fowl', desc: '+100% Hunger, +100% Energy full recovery', cost: '₵65', fn: () => { gameState.feed(100, 100); gameState.spendCedis(65); window.ui.showToast('Auntie Muni Special enjoyed! Fully energized.', '🍗'); } },
+                    { title: 'Talk to Auntie Muni', desc: 'Campaign storyline dialogue', cost: 'Story', fn: () => { window.ui.openNpcDialogue('auntie_muni'); } }
                 ]
             },
             bloom_bar: {
-                title: 'Bloom Bar Osu',
+                title: 'Bloom Bar',
                 emoji: '🪩',
                 loc: 'Osu Nightlife District',
-                desc: 'The beating heart of Accra nightlife! Neon rooftop, top Afrobeats DJs, and VIP energy.',
+                desc: 'The beating heart of Accra nightlife! Open-air timber pergola, top Afrobeats DJs, and VIP energy.',
                 actions: [
                     { title: 'Order Signature Cocktail', desc: '+50 Clout, +25% Mood boost', cost: '₵65', fn: () => { gameState.spendCedis(65); gameState.addClout(50); window.ui.showToast('Sipping chilled cocktail at Bloom Bar!', '🍸'); } },
                     { title: 'Hit the Azonto Dancefloor', desc: 'Perform Azonto slide on stage (+35 Clout)', cost: 'Free', fn: () => { window.ui.triggerDanceMenu(); } },
@@ -849,30 +1111,30 @@ export class UIManager {
                 ]
             },
             salon: {
-                title: "Sister Akua's Salon & Barbershop",
+                title: "Sister Akua's Salon",
                 emoji: '💇🏾‍♀️',
-                loc: 'Oxford Street Corner',
-                desc: 'Premier African styling: Box Braids, High-Top Afro, Dreads, and razor-sharp Fades.',
+                loc: 'Oxford Street, Osu',
+                desc: 'Top beauty parlor & barbershop. Fresh fades, box braids, lace wigs, and city gossip.',
                 actions: [
-                    { title: 'Open Wardrobe & Hairstyle Studio', desc: 'Customize your 3D avatar drip', cost: 'Free', fn: () => { window.ui.openWardrobe(); } }
+                    { title: 'Open Wardrobe & Hairstyle Shop', desc: 'Customize your African drip & hair', cost: 'Style', fn: () => { window.ui.openWardrobe(); } }
                 ]
             },
             papaye: {
                 title: 'Papaye Fast Food',
                 emoji: '🍕',
-                loc: 'Spintex & Oxford St',
-                desc: 'Ghana favorite fried chicken and jollof rice since 1991.',
+                loc: 'Osu Oxford Street',
+                desc: 'Accra favorite roast chicken, fried rice, and chips since 1991.',
                 actions: [
-                    { title: 'Papaye Crispy Chicken & Jollof', desc: '+90% Hunger, +40% Energy', cost: '₵48', fn: () => { gameState.feed(90, 40); gameState.spendCedis(48); window.ui.showToast('Papaye fried chicken hit the spot!', '🍗'); } }
+                    { title: 'Roasted Chicken & Jollof Meal', desc: '+70% Hunger, +30% Energy', cost: '₵40', fn: () => { gameState.feed(70, 30); gameState.spendCedis(40); window.ui.showToast('Delicious Papaye jollof enjoyed!', '🍗'); } }
                 ]
             },
             sea_plots: {
-                title: 'Sea & Beach Plots (Gulf of Guinea)',
+                title: 'Atlantic Sea Plots',
                 emoji: '🌊',
-                loc: 'Accra Coastal Waters',
-                desc: 'Digital advertising billboards anchored in the Atlantic Ocean, visible to all online players.',
+                loc: 'Gulf of Guinea Coast',
+                desc: 'Prime floating advertising billboards anchored in the Atlantic waters.',
                 actions: [
-                    { title: 'Lease Floating Sea Billboard', desc: 'Advertise your username or brand on Accra water', cost: 'Lease', fn: () => { window.ui.openSeaPlotsModal(); } }
+                    { title: 'Lease Atlantic Billboard', desc: 'Post your custom headline or ad', cost: 'Lease', fn: () => { window.ui.openSeaPlotsModal(); } }
                 ]
             }
         };
@@ -976,7 +1238,7 @@ export class UIManager {
 
                     <div style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
                         <div style="font-size: 1.1rem; font-weight: 800; color: #38bdf8;">Weekly Sea Plot Lease: ₵2,500 Cedis</div>
-                        <p style="font-size: 0.8rem; color: #cbd5e1; margin-top: 4px;">Visible to all 16,000+ players navigating Accra waters.</p>
+                        <p style="font-size: 0.8rem; color: #cbd5e1; margin-top: 4px;">Visible to all 28,000+ players navigating Accra waters.</p>
                     </div>
 
                     <button class="btn-submit" onclick="window.ui.leaseSeaPlotPrompt()">
@@ -1002,71 +1264,7 @@ export class UIManager {
         this.showToast(`Billboard live on Accra waters: "${ad}"`, '🌊');
     }
 
-    openPhoneModal() {
-        audio.playTap();
-        const root = document.getElementById('modals-root');
-        if (!root) return;
-
-        const d = gameState.data;
-
-        root.innerHTML = `
-            <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
-                <div class="modal-card" style="max-width: 440px;">
-                    <div class="modal-header">
-                        <h3>📱 Accra ChaleApp & MoMo Wallet</h3>
-                        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
-                    </div>
-
-                    <!-- Phone Screen Card -->
-                    <div style="background: #0f172a; border: 2px solid #334155; border-radius: 20px; padding: 16px; margin-bottom: 14px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 12px;">
-                            <span>MTN 5G GH 📶</span>
-                            <span>Accra 12:40 PM</span>
-                        </div>
-
-                        <div style="text-align: center; margin-bottom: 16px;">
-                            <div style="font-size: 0.8rem; color: #94a3b8;">MTN Mobile Money Balance</div>
-                            <div style="font-size: 1.8rem; font-weight: 800; color: #fbbf24;">₵${d.cedis.toLocaleString()}</div>
-                            <div style="font-size: 0.82rem; color: #38bdf8;">Reputation Clout: ✨ ${d.clout}</div>
-                        </div>
-
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
-                            <div class="shop-card" style="padding: 10px;" onclick="window.ui.openMoMoShop()">
-                                <div style="font-size: 1.5rem;">💳</div>
-                                <div style="font-size: 0.72rem; font-weight: 700; margin-top: 3px;">Top Up MoMo</div>
-                            </div>
-                            <div class="shop-card" style="padding: 10px;" onclick="window.ui.openTrotroEmpireModal()">
-                                <div style="font-size: 1.5rem;">🚌</div>
-                                <div style="font-size: 0.72rem; font-weight: 700; margin-top: 3px;">Trotros</div>
-                            </div>
-                            <div class="shop-card" style="padding: 10px;" onclick="window.ui.openHousingModal()">
-                                <div style="font-size: 1.5rem;">🏡</div>
-                                <div style="font-size: 0.72rem; font-weight: 700; margin-top: 3px;">Pay Rent</div>
-                            </div>
-                            <div class="shop-card" style="padding: 10px;" onclick="window.ui.openMayorModal()">
-                                <div style="font-size: 1.5rem;">🏛️</div>
-                                <div style="font-size: 0.72rem; font-weight: 700; margin-top: 3px;">Mayor AMA</div>
-                            </div>
-                            <div class="shop-card" style="padding: 10px;" onclick="window.ui.openWardrobe()">
-                                <div style="font-size: 1.5rem;">👗</div>
-                                <div style="font-size: 0.72rem; font-weight: 700; margin-top: 3px;">Drip Shop</div>
-                            </div>
-                            <div class="shop-card" style="padding: 10px;" onclick="window.ui.openStoryJournal()">
-                                <div style="font-size: 1.5rem;">📜</div>
-                                <div style="font-size: 0.72rem; font-weight: 700; margin-top: 3px;">Story</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button class="btn-submit" onclick="this.closest('.modal-overlay').remove()">
-                        Put Away Phone
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    // --- MONETIZATION & IAP MODALS ---
+    // --- 8. MONETIZATION & IAP MODALS ---
     triggerQuickAdCash() {
         monetization.showRewardedVideo('reward_cash_aid', () => {
             gameState.earnCedis(150);
@@ -1201,73 +1399,6 @@ export class UIManager {
         this.showToast(`Changed hairstyle to ${hairStyle}!`, '✂️');
     }
 
-    triggerCurrentGig() {
-        audio.playTap();
-        const root = document.getElementById('modals-root');
-        root.innerHTML = `
-            <div class="modal-overlay open" onclick="if(event.target===this) this.remove()">
-                <div class="modal-card">
-                    <div class="modal-header">
-                        <h3>💼 Accra Hustle & Gigs</h3>
-                        <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
-                    </div>
-                    <div class="dialogue-choices">
-                        <button class="story-choice-btn" onclick="window.ui.completeGig(200, 'Waakye Delivery Shift')">
-                            <span class="choice-text">🍛 Waakye Delivery on Oxford St</span>
-                            <span class="choice-consequence">+₵200 Cedis • +25 Clout</span>
-                        </button>
-                        <button class="story-choice-btn" onclick="window.ui.completeGig(350, 'Bloom Bar Guest DJ')">
-                            <span class="choice-text">🎧 Bloom Bar Afrobeats DJ</span>
-                            <span class="choice-consequence">+₵350 Cedis • +45 Clout</span>
-                        </button>
-                        <button class="story-choice-btn" onclick="window.ui.completeGig(500, 'FinTech Smart Contract Audit')">
-                            <span class="choice-text">💻 East Legon FinTech Audit</span>
-                            <span class="choice-consequence">+₵500 Cedis • +60 Clout</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    completeGig(pay, gigTitle) {
-        audio.playCashJingle();
-        document.querySelector('.modal-overlay')?.remove();
-        const root = document.getElementById('modals-root');
-        root.innerHTML = `
-            <div class="modal-overlay open">
-                <div class="modal-card quest-complete-card">
-                    <div class="complete-icon">💼</div>
-                    <div class="complete-title">${gigTitle} Completed!</div>
-                    <div class="complete-payout">
-                        <div class="payout-item">🪙 +₵${pay} Cedis</div>
-                    </div>
-                    <div style="background: rgba(245, 158, 11, 0.15); border: 1px dashed #f59e0b; border-radius: 12px; padding: 12px; margin: 14px 0;">
-                        <div style="font-weight: 800; color: #fbbf24;">🎬 3x Sponsor Paycheck Multiplier!</div>
-                        <p style="font-size: 0.8rem; color: #cbd5e1; margin: 4px 0 8px 0;">Watch a 6s sponsor video to triple your pay to +₵${pay * 3} Cedis!</p>
-                        <button class="btn-momo-buy" onclick="window.ui.claimTripleGigPay(${pay})">
-                            📺 Watch 6s Ad to 3x Pay (+₵${pay * 3})
-                        </button>
-                    </div>
-                    <button class="btn-submit" onclick="this.closest('.modal-overlay').remove(); window.gameState.earnCedis(${pay});">
-                        Accept Base Pay (+₵${pay})
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    claimTripleGigPay(basePay) {
-        monetization.showRewardedVideo('reward_triple_gig', () => {
-            const triple = basePay * 3;
-            gameState.earnCedis(triple);
-            audio.playLevelUp();
-            this.showToast(`🎉 3x PAYCHECK CLAIMED: +₵${triple} Cedis!`, '💰');
-            document.querySelector('.modal-overlay')?.remove();
-            this.renderHUD(gameState.data);
-        });
-    }
-
     triggerDanceMenu() {
         audio.unlock();
         this.showToast('Azonto Groove Active! 🇬🇭', '🔥');
@@ -1299,7 +1430,7 @@ export class UIManager {
         if (modal) modal.classList.add('open');
     }
 
-    // --- STORYLINE RPG METHODS ---
+    // --- 9. STORYLINE RPG & NARRATIVE METHODS ---
     openNpcDialogue(npcId) {
         audio.unlock();
         const root = document.getElementById('modals-root');
@@ -1359,14 +1490,11 @@ export class UIManager {
                             <button class="modal-close-btn" onclick="this.closest('.modal-overlay').remove()">✕</button>
                         </div>
                         <div class="dialogue-body">
-                            <p class="dialogue-line">${ambient.line}</p>
+                            <p class="dialogue-line">"${ambient.line}"</p>
                         </div>
-                        <div class="dialogue-choices">
-                            <button class="story-choice-btn" onclick="this.closest('.modal-overlay').remove()">
-                                <span class="choice-text">"Charle, I hear you! Let me keep hustling."</span>
-                                <span class="choice-consequence">Keep exploring Accra streets</span>
-                            </button>
-                        </div>
+                        <button class="btn-submit" onclick="this.closest('.modal-overlay').remove()">
+                            Close Dialogue
+                        </button>
                     </div>
                 </div>
             `;
@@ -1478,21 +1606,19 @@ export class UIManager {
                     </div>
 
                     <button class="btn-submit" onclick="this.closest('.modal-overlay').remove(); window.ui.showToast('Quest Completed! New objective active.', '📜');">
-                        Continue Adventure ›
+                        Continue Adventure
                     </button>
                 </div>
             </div>
         `;
-
-        this.renderHUD(gameState.data);
     }
 
-    claimDoubleStoryReward(cedisBonus, cloutBonus) {
-        monetization.showRewardedVideo('story_quest_double', () => {
-            gameState.earnCedis(cedisBonus);
-            gameState.addClout(cloutBonus);
+    claimDoubleStoryReward(cedis, clout) {
+        monetization.showRewardedVideo('reward_double_story', () => {
+            gameState.earnCedis(cedis);
+            gameState.addClout(clout);
             audio.playLevelUp();
-            this.showToast(`🎉 2x Quest Bonus Claimed! +₵${cedisBonus} Cedis & +${cloutBonus} Clout!`, '💰');
+            this.showToast(`🎉 2x STORY BONUS CLAIMED: +₵${cedis} & +${clout} Clout!`, '📜');
             document.querySelector('.modal-overlay')?.remove();
             this.renderHUD(gameState.data);
         });

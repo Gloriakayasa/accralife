@@ -46,11 +46,12 @@ export class GameEngine {
         this.renderer.shadowMap.type = THREE.PCFShadowMap;
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.scene.background = new THREE.Color(0xdbeafe); // Warm sunny coastal Accra sky
+        this.scene.fog = new THREE.FogExp2(0xdbeafe, 0.006);
     }
 
     initCamera() {
         this.camera = new THREE.PerspectiveCamera(
-            38,
+            36,
             window.innerWidth / window.innerHeight,
             0.1,
             500
@@ -59,22 +60,23 @@ export class GameEngine {
     }
 
     initLighting() {
-        // Bright tropical Ghanaian sunlight
-        const ambient = new THREE.AmbientLight(0xfff7ed, 0.85);
-        this.scene.add(ambient);
+        // Bright tropical Ghanaian sunlight & warm ambient sky bounce
+        const hemi = new THREE.HemisphereLight(0xfffbeb, 0x166534, 0.75);
+        this.scene.add(hemi);
 
-        this.sun = new THREE.DirectionalLight(0xfef08a, 1.3);
-        this.sun.position.set(30, 50, 25);
+        this.sun = new THREE.DirectionalLight(0xfffaed, 1.4);
+        this.sun.position.set(35, 55, 30);
         this.sun.castShadow = true;
-        this.sun.shadow.mapSize.width = 1024;
-        this.sun.shadow.mapSize.height = 1024;
+        this.sun.shadow.mapSize.width = 2048;
+        this.sun.shadow.mapSize.height = 2048;
         this.sun.shadow.camera.near = 0.5;
-        this.sun.shadow.camera.far = 150;
-        const d = 45;
+        this.sun.shadow.camera.far = 160;
+        const d = 50;
         this.sun.shadow.camera.left = -d;
         this.sun.shadow.camera.right = d;
         this.sun.shadow.camera.top = d;
         this.sun.shadow.camera.bottom = -d;
+        this.sun.shadow.bias = -0.0005;
         this.scene.add(this.sun);
     }
 
@@ -138,7 +140,9 @@ export class GameEngine {
                     audio.playTap();
                     if (hit.userData.type === 'venue') {
                         // Smoothly shift focus towards venue
-                        this.focusOnVenue(hit.position.x + hit.parent.position.x, hit.position.z + hit.parent.position.z);
+                        const vx = hit.userData.posX !== undefined ? hit.userData.posX : hit.position.x;
+                        const vz = hit.userData.posZ !== undefined ? hit.userData.posZ : hit.position.z;
+                        this.focusOnVenue(vx, vz);
                         if (window.ui && typeof window.ui.openVenue === 'function') {
                             window.ui.openVenue(hit.userData.venueId);
                         }

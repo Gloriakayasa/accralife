@@ -586,38 +586,106 @@ html, body {
 /* Mobile Responsive */
 @media (max-width: 768px) {
     #hud-top {
-        padding: 8px 12px;
-        flex-wrap: wrap;
-        gap: 8px;
+        padding: 6px 10px;
+        gap: 4px;
     }
 
-    .hud-meters {
-        order: 3;
-        width: 100%;
-        justify-content: space-between;
+    .hud-profile {
+        padding: 4px 8px;
     }
 
-    .meter-bar {
-        width: 45px;
+    .profile-avatar-circle {
+        width: 28px;
+        height: 28px;
+        font-size: 0.95rem;
     }
 
-    .dock-btn {
+    .profile-name {
+        font-size: 0.82rem;
+    }
+
+    .profile-title {
+        font-size: 0.65rem;
+    }
+
+    .city-stats-bar {
+        overflow-x: auto;
+        white-space: nowrap;
+        max-width: calc(100vw - 20px);
+        padding-bottom: 2px;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+    }
+    .city-stats-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .hud-currencies {
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+
+    .currency-pill {
+        padding: 4px 6px;
+        font-size: 0.72rem;
+    }
+
+    .hud-ad-btn, .hud-wheel-btn {
+        padding: 4px 6px;
+        font-size: 0.72rem;
+    }
+
+    .hud-icon-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 0.85rem;
+    }
+
+    #city-mayor-banner {
+        font-size: 0.72rem;
+        padding: 4px 8px;
+    }
+
+    #hud-story-widget {
+        top: 130px;
+        bottom: auto !important;
+        left: 10px;
+        max-width: 220px;
         padding: 6px 10px;
     }
 
+    .story-widget-title {
+        font-size: 0.78rem;
+    }
+    .story-widget-sub {
+        font-size: 0.68rem;
+    }
+
+    #hud-toast {
+        top: 130px;
+        font-size: 0.82rem;
+        padding: 6px 14px;
+        max-width: 88vw;
+    }
+
+    #hud-dock {
+        padding: 6px 10px;
+        gap: 6px;
+    }
+
+    .dock-btn {
+        padding: 5px 8px;
+    }
+
     .dock-icon {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
     }
 
     .dock-text {
-        font-size: 0.7rem;
-    }
-
-    #virtual-joystick-zone {
-        bottom: 75px;
-        left: 12px;
+        font-size: 0.68rem;
     }
 }
+
 
 /* In-Game Toast Notifications */
 #hud-toast {
@@ -939,6 +1007,7 @@ html, body {
 @media (max-width: 768px) {
     #hud-story-widget {
         top: 130px;
+        bottom: auto !important;
         left: 12px;
         max-width: 220px;
         padding: 6px 10px;
@@ -1250,4 +1319,71 @@ html, body {
     color: #34d399;
     margin-top: 4px;
 }
+
+/* Policies Grid & Cards */
+.policies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.policy-card {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.policy-icon {
+    font-size: 2rem;
+}
+
+.policy-name {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #f8fafc;
+}
+
+.policy-effect {
+    font-size: 0.78rem;
+    color: #94a3b8;
+}
+
+/* Candidate Grid & Cards */
+.candidates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.candidate-card {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.candidate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.candidate-votes {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #34d399;
+    background: rgba(16, 185, 129, 0.15);
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
 
